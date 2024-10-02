@@ -102,6 +102,7 @@ def parallel_merge_sort(A, N):
             j += 1
             k += 1
 
+    return arr
 
 
 ### 2c. Evaluation plan - what and how will you measure and compare
