@@ -23,10 +23,12 @@
 - For MPI programs, include MPI calls you will use to coordinate between processes
 
 Merge Sort Pseudocode:
-def parallel_merge_sort(A, N):
-    # Initialize MPI
-    MPI_Init()  # Starts the MPI environment, allowing for communication between processes
 
+
+  
+def parallel_merge_sort(A, N):  
+
+    MPI_Init()
     rank = MPI_Comm_rank()  # Get the rank of the current process
     size = MPI_Comm_size()   # Get the total number of processes
 
@@ -63,10 +65,13 @@ def parallel_merge_sort(A, N):
     # Finalize MPI
     MPI_Finalize()  # Clean up the MPI environment before exiting
 
-def merge_sort(arr):
-    # Custom merge sort implementation
-    if len(arr) > 1:
-        mid = len(arr) // 2  # Find the midpoint of the array
+  def merge_sort(arr): 
+
+
+     # Custom merge sort implementation 
+     if len(arr) > 1:
+        #define pointers
+        mid = len(arr) // 2   # Find the midpoint of the array
         left = arr[:mid]      # Split the array into two halves
         right = arr[mid:]
 
