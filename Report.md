@@ -25,67 +25,78 @@
 Merge Sort Pseudocode:
 def parallel_merge_sort(A, N):
     # Initialize MPI
-    MPI_Init()
+    MPI_Init()  # Starts the MPI environment, allowing for communication between processes
 
-    rank = MPI_Comm_rank()
-    size = MPI_Comm_size()
+    rank = MPI_Comm_rank()  # Get the rank of the current process
+    size = MPI_Comm_size()   # Get the total number of processes
 
-    # Step 3: Divide the array
+    # Step 3: Divide the array among processes
     if rank == 0:
-        sub_array_size = N // size
+        sub_array_size = N // size  # Calculate the size of each sub-array
+        # Send portions of the array to each process
         for i in range(1, size):
+            # Sending sub-arrays to other processes
             MPI_Send(A[i * sub_array_size:(i + 1) * sub_array_size], dest=i)
-        local_array = A[0:sub_array_size]
+        local_array = A[0:sub_array_size]  # Root keeps its portion of the array
     else:
+        # Receive the assigned sub-array for non-root processes
         local_array = MPI_Recv(source=0)
 
     # Custom merge sort on the sub-array
-    merge_sort(local_array)
+    merge_sort(local_array)  # Each process sorts its own sub-array
 
     # Merging step using iterative merging (recursive doubling)
-    step = 1
-    while step < size:
-        if rank % (2 * step) == 0:
-            if rank + step < size:
+    step = 1  # Start with a step size of 1 for merging
+    while step < size:  # Continue until the step size is greater than the number of processes
+        if rank % (2 * step) == 0:  # Check if the process is an even-ranked process for merging
+            if rank + step < size:  # Ensure there is a process to receive the data
+                # Receive the sorted sub-array from the partner process
                 received_array = MPI_Recv(source=rank + step)
+                # Merge the local sorted array with the received array
                 local_array = merge(local_array, received_array)
         else:
+            # Send the local sorted array to the partner process
             MPI_Send(local_array, dest=rank - step)
-            break
-        step *= 2
+            break  # Exit the loop after sending the data
+        step *= 2  # Double the step size for the next iteration
 
     # Finalize MPI
-    MPI_Finalize()
+    MPI_Finalize()  # Clean up the MPI environment before exiting
 
-    def merge_sort(arr):
+def merge_sort(arr):
     # Custom merge sort implementation
     if len(arr) > 1:
-        mid = len(arr) // 2
-        left = arr[:mid]
+        mid = len(arr) // 2  # Find the midpoint of the array
+        left = arr[:mid]      # Split the array into two halves
         right = arr[mid:]
 
+        # Recursively sort the left and right halves
         merge_sort(left)
         merge_sort(right)
 
-        i = j = k = 0
+        # Merging the sorted halves back together
+        i = j = k = 0  # Initialize indices for left, right, and merged arrays
         while i < len(left) and j < len(right):
-            if left[i] < right[j]:
-                arr[k] = left[i]
+            if left[i] < right[j]:  # Compare elements from both halves
+                arr[k] = left[i]     # Add the smaller element to the merged array
                 i += 1
             else:
-                arr[k] = right[j]
+                arr[k] = right[j]    # Add the smaller element to the merged array
                 j += 1
-            k += 1
+            k += 1  # Move to the next position in the merged array
 
+        # Add any remaining elements from the left half
         while i < len(left):
             arr[k] = left[i]
             i += 1
             k += 1
 
+        # Add any remaining elements from the right half
         while j < len(right):
             arr[k] = right[j]
             j += 1
             k += 1
+
 
 
 ### 2c. Evaluation plan - what and how will you measure and compare
