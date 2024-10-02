@@ -65,41 +65,41 @@ Merge Sort Pseudocode:
       MPI_Finalize()  # Clean up the MPI environment before exiting
 
     def merge_sort(arr): 
-     # Custom merge sort implementation 
-     if len(arr) > 1:
-        #define pointers
-        mid = len(arr) // 2   # Find the midpoint of the array
-        left = arr[:mid]      # Split the array into two halves
-        right = arr[mid:]
+       # Custom merge sort implementation 
+       if len(arr) > 1:
+          #define pointers
+          mid = len(arr) // 2   # Find the midpoint of the array
+          left = arr[:mid]      # Split the array into two halves
+          right = arr[mid:]
 
-        # Recursively sort the left and right halves
-        merge_sort(left)
-        merge_sort(right)
+          # Recursively sort the left and right halves
+          merge_sort(left)
+          merge_sort(right)
 
-        # Merging the sorted halves back together
-        i = j = k = 0  # Initialize indices for left, right, and merged arrays
-        while i < len(left) and j < len(right):
-            if left[i] < right[j]:  # Compare elements from both halves
-                arr[k] = left[i]     # Add the smaller element to the merged array
-                i += 1
-            else:
-                arr[k] = right[j]    # Add the smaller element to the merged array
-                j += 1
-            k += 1  # Move to the next position in the merged array
+          # Merging the sorted halves back together
+          i = j = k = 0  # Initialize indices for left, right, and merged arrays
+          while i < len(left) and j < len(right):
+              if left[i] < right[j]:  # Compare elements from both halves
+                  arr[k] = left[i]     # Add the smaller element to the merged array
+                  i += 1
+              else:
+                  arr[k] = right[j]    # Add the smaller element to the merged array
+                  j += 1
+              k += 1  # Move to the next position in the merged array
 
-        # Add any remaining elements from the left half
-        while i < len(left):
-            arr[k] = left[i]
-            i += 1
-            k += 1
+          # Add any remaining elements from the left half
+          while i < len(left):
+              arr[k] = left[i]
+              i += 1
+              k += 1
 
-        # Add any remaining elements from the right half
-        while j < len(right):
-            arr[k] = right[j]
-            j += 1
-            k += 1
+          # Add any remaining elements from the right half
+          while j < len(right):
+              arr[k] = right[j]
+              j += 1
+              k += 1
 
-    return arr
+      return arr
 
 
 ### 2c. Evaluation plan - what and how will you measure and compare
