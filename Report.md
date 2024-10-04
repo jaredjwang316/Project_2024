@@ -107,25 +107,27 @@ Merge Sort Pseudocode:
 
 1. Input Sizes:
 
-    Small Input: 10,000 elements
-    Medium Input: 100,000 elements
-    Large Input: 1,000,000 elements
+    - Small Input: 10,000 elements
+    - Medium Input: 100,000 elements
+    - Large Input: 1,000,000 elements
 
 These input sizes allow for testing with varying workloads and evaluating the performance of parallel merge sort under different data sizes.
 
 2. Input Types:
 
-    Random Integers: Arrays of random integers, which mimic typical use cases of merge sort.
-    Edge Cases: Arrays that are already sorted (ascending and descending), arrays with repeated elements, and small arrays (smaller or equal to the number of processors) to assess how the algorithm performs under edge conditions.
+    - Random Integers: Arrays of random integers, which mimic typical use cases of merge sort.
+    - Edge Cases: Arrays that are already sorted (ascending and descending), arrays with repeated elements, and small arrays (smaller or equal to the number of processors) to assess how the algorithm performs under edge conditions.
 
 3. Scaling Tests:
   a. Strong Scaling:
-      Goal: Measure how execution time changes when increasing the number of processors while keeping the problem size fixed.
-      Processors: Use processor counts of 2, 4, 8, 16, 32, 64, and 128.
-      Input: Fixed-size arrays, such as 1,000,000 elements.
-      Measurement: The primary metric is execution time (time to complete sorting) for each processor count.
-      Expected Outcome: As the number of processors increases, the execution time should decrease, ideally showing faster sorting with more processors. However, at higher processor counts, communication overhead might offset the gains from parallelism, leading to diminishing returns.
+      - Goal: Measure how execution time changes when increasing the number of processors while keeping the problem size fixed.
+      - Processors: Use processor counts of 2, 4, 8, 16, 32, 64, and 128.
+      - Input: Fixed-size arrays, such as 1,000,000 elements.
+      - Measurement: The primary metric is execution time (time to complete sorting) for each processor count.
+      - Expected Outcome: As the number of processors increases, the execution time should decrease, ideally showing faster sorting with more processors. However, at higher processor counts, communication overhead might offset the gains from parallelism, leading to diminishing returns.
 
 4. Output Graph:
 
-    For each input size, generate a graph with execution time vs. number of processors. The y-axis will represent execution time, and the x-axis will represent the number of processors. You will plot 3 graphs (one for each input size) with lines representing each input size’s performance with varying processor counts.
+    - For each input size, generate a graph with execution time vs. number of processors.
+    - The y-axis will represent execution time, and the x-axis will represent the number of processors. P
+    - Plot 3 graphs (one for each input size) with lines representing each input size’s performance with varying processor counts.
