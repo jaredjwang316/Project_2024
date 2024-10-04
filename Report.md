@@ -14,9 +14,7 @@
 
 - Bitonic Sort:
 - Sample Sort:
-- Merge Sort: A classic divide-and-conquer sorting algorithm that can be effectively parallelized.
-  We will implement an iterative version using MPI, where the array is divided among multiple processes,
-  and each process sorts its sub-array before merging results.
+- Merge Sort:  SPMD (CPU only)  
 - Radix Sort:
 
 ### 2b. Pseudocode for each parallel algorithm
