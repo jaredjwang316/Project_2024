@@ -181,8 +181,53 @@ Merge Sort
 
 Radix Sort
 
-```
+```python
+def parallel_radix_sort(arr):
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    size = comm.Get_size()
 
+    # chunk size and local chunk for each process
+    chunk_size = len(arr) // size
+    local_chunk = arr[rank * chunk_size: (rank + 1) * chunk_size]
+
+    # step 1: count for local chunk -> Histogram
+    max_value = comm.allreduce(np.max(local_chunk), op=MPI.MAX)
+    num_buckets = int(np.log2(max_value)) + 1
+    local_histogram = np.zeros((num_buckets, 256), dtype=int)
+
+    for num in local_chunk:
+        for byte_index in range(num_buckets):
+            bucket = (num >> (byte_index * 8)) & 0xFF
+            local_histogram[byte_index][bucket] += 1
+
+    # step 2: partial sums
+    global_histogram = np.zeros_like(local_histogram)
+    comm.Reduce(local_histogram, global_histogram, op=MPI.SUM, root=0)
+
+    if rank == 0:
+        for i in range(num_buckets):
+            np.cumsum(global_histogram[i], out=global_histogram[i])
+
+    comm.Bcast(global_histogram, root=0)
+
+    # step 3: reorder
+    sorted_arr = np.zeros_like(arr)
+    for byte_index in range(num_buckets):
+        offsets = np.zeros(256, dtype=int)
+        comm.Exscan(local_histogram[byte_index], offsets, op=MPI.SUM)
+        
+        for i, num in enumerate(local_chunk):
+            bucket = (num >> (byte_index * 8)) & 0xFF
+            index = offsets[bucket] + global_histogram[byte_index][bucket] - \
+                    np.sum(local_histogram[byte_index][bucket+1:])
+            sorted_arr[index] = num
+            offsets[bucket] += 1
+
+        comm.Allgather(local_chunk, arr)
+        local_chunk = arr[rank * chunk_size: (rank + 1) * chunk_size]
+
+    return sorted_arr
 ```
 
 ---
