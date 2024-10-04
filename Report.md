@@ -13,7 +13,7 @@
 ### 2a. Brief project description (what algorithms will you be comparing and on what architectures)
 
 - Bitonic Sort: SPMD (CPU only)
-- Sample Sort:
+- Sample Sort: SPMD (CPU only)
 - Merge Sort:  SPMD (CPU only)  
 - Radix Sort:
 
@@ -164,6 +164,52 @@ def local_bitonic_merge(arr, low, count, ascending):
     local_bitonic_merge(arr, low, k, ascending)
     local_bitonic_merge(arr, low + k, k, ascending)
 ```
+
+Sample Sort Pseudocode:
+
+    function sample_sort(A, n, s):
+        MPI_Init()
+        rank = MPI_Comm_rank()
+        # The number of worker processes is also the number of buckets
+        num_processes = MPI_Comm_size()
+        bucket_size = n/num_processes
+
+        if rank == 0:
+            for i from 0 to num_processes - 1:
+                MPI_Send(A[i:i*bucket_size], dest = i)
+
+        else:
+            // Worker process receives work from master process
+            current_bucket = MPI_Recv(source=0)
+            quicksort(current_bucket)
+            i = 0
+            samples = []
+            # Choose s random values from current_bucket and add to samples
+            MPI_Send(samples, dest = 0)
+
+        if rank == 0:
+            master_samples = []
+            MPI_Gather(master_samples, MPI_Comm_World)
+            quicksort(master_samples)
+
+            splitters = []
+            # Choose num_processes - 1 values from master_samples to be the splitters
+            
+            # Split elements by bucket
+
+            buckets[num_processes]
+            for i from 0 to n:
+                for j from 0 to num_processes
+                    if A[i] > splitters[j-1] && A[i] <= splitters[j]
+                    # Put into the jth bucket
+                    
+            
+
+    function quicksort(A, q, r)
+
+
+    function bucket_sort(A, 
+        
 
 ### 2c. Evaluation plan - what and how will you measure and compare
 - Input sizes, Input types
