@@ -12,7 +12,7 @@
 
 ### 2a. Brief project description (what algorithms will you be comparing and on what architectures)
 
-- Bitonic Sort:
+- Bitonic Sort: SPMD (CPU only)
 - Sample Sort:
 - Merge Sort:  SPMD (CPU only)  
 - Radix Sort:
