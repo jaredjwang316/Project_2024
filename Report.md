@@ -119,14 +119,16 @@ These input sizes allow for testing with varying workloads and evaluating the pe
     - Edge Cases: Arrays that are already sorted (ascending and descending), arrays with repeated elements, and small arrays (smaller or equal to the number of processors) to assess how the algorithm performs under edge conditions.
 
 3. Scaling Tests:
-  a. Strong Scaling:
+   
+  Strong Scaling:
+      
       - Goal: Measure how execution time changes when increasing the number of processors while keeping the problem size fixed.
       - Processors: Use processor counts of 2, 4, 8, 16, 32, 64, and 128.
       - Input: Fixed-size arrays, such as 1,000,000 elements.
       - Measurement: The primary metric is execution time (time to complete sorting) for each processor count.
       - Expected Outcome: As the number of processors increases, the execution time should decrease, ideally showing faster sorting with more processors. However, at higher processor counts, communication overhead might offset the gains from parallelism, leading to diminishing returns.
 
-4. Output Graph:
+5. Output Graph:
 
     - For each input size, generate a graph with execution time vs. number of processors.
     - The y-axis will represent execution time, and the x-axis will represent the number of processors. P
