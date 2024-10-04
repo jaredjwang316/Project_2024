@@ -151,6 +151,8 @@ def local_bitonic_sort(arr, low, count, ascending):
         local_bitonic_merge(arr, low, count, ascending) # Bitonic merge sorted halves
 
 def local_bitonic_merge(arr, low, count, ascending):
+    if count <= 1:
+        return  # Break recursion on base case
     k = count // 2
     # Iteratively swap such that all elements in the first half are:
     #   - less than all elements in the second half if ascending
