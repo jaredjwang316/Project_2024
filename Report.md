@@ -27,7 +27,7 @@ Merge Sort Pseudocode:
       rank = MPI_Comm_rank()  # Get the rank of the current process
       size = MPI_Comm_size()   # Get the total number of processes
   
-      # Step 3: Divide the array among processes
+      # Divide the array among processes
       if rank == 0:
           sub_array_size = N // size  # Calculate the size of each sub-array
           # Send portions of the array to each process
@@ -97,6 +97,71 @@ Merge Sort Pseudocode:
 
       return arr
 
+Bitonic Sort Pseudocode:
+```python
+def parallel_bitonic_sort(arr):
+    MPI_Init()
+    rank = MPI_Comm_rank()   # Get the rank of the current process
+    n_procs = MPI_Comm_size()   # Get the total number of processes
+
+    # Divide array for parallel sorting
+    local_arr = []
+    if rank == 0:   
+        # Divide & dispatch subarrays in host process  
+        sub_arr_size = len(arr) // n_procs
+        local_arr = arr[:sub_arr_size]
+        for i in range(1, n_procs):
+            worker_arr = arr[i * sub_arr_size : (i + 1) * sub_arr_size]
+            MPI_Send(worker_arr, dest=i)
+    else:   
+        # Receive local subarray from host process in worker process
+        local_arr = MPI_Recv(source=0)
+
+    # Sort local subarrays into bitonically alternating pairs (ascending-descending-ascending-etc.) 
+    if rank % 2 == 0:
+        local_bitonic_sort(local_arr, 0, len(local_arr), ascending=True)
+    else:
+        local_bitonic_sort(local_arr, 0, len(local_arr), ascending=False)
+
+    # Iteratively & parallelly merge bitonic pairs of locally sorted subarrays
+    step = 1
+    while step < n_procs:
+        if rank % (step * 2) == 0:
+            # Receive data from partner process and bitonic merge sort into local array
+            recv_arr = MPI_Recv(source=rank + step)
+            local_arr.extend(recv_arr)
+            local_bitonic_merge(local_arr, 0, len(local_arr), True)
+        else:
+            # Send local array to process waiting to merge and exit
+            MPI_Send(local_arr, dest=rank - step)
+            break
+        step = step * 2 # Double step for next iteration
+
+    # Host process now contains fully-sorted array
+    if rank == 0:
+        print(local_arr)
+
+    MPI_Finalize()
+
+def local_bitonic_sort(arr, low, count, ascending):
+    if count > 1:
+        k = count // 2
+        local_bitonic_sort(arr, low, k, True)        # Sort first half in ascending order
+        local_bitonic_sort(arr, low + k, k, False)    # Sort second half in descending order
+        local_bitonic_merge(arr, low, count, ascending) # Bitonic merge sorted halves
+
+def local_bitonic_merge(arr, low, count, ascending):
+    k = count // 2
+    # Iteratively swap such that all elements in the first half are:
+    #   - less than all elements in the second half if ascending
+    #   - greater than all elements in the second half if descending
+    for i in range(low, low + k):
+        if arr[i] > arr[k + i] == ascending:
+            swap(arr[i], arr[k + i])
+    # Recursively merge each half to sort
+    local_bitonic_merge(arr, low, k, ascending)
+    local_bitonic_merge(arr, low + k, k, ascending)
+```
 
 ### 2c. Evaluation plan - what and how will you measure and compare
 - Input sizes, Input types
