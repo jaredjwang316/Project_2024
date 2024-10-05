@@ -103,7 +103,7 @@ def parallel_bitonic_sort(arr):
     MPI_Init()
     rank = MPI_Comm_rank()   # Get the rank of the current process
     n_procs = MPI_Comm_size()   # Get the total number of processes
-
+    
     # Divide array for parallel sorting
     local_arr = []
     if rank == 0:   
@@ -167,48 +167,81 @@ def local_bitonic_merge(arr, low, count, ascending):
 
 Sample Sort Pseudocode:
 
+
+    // Note, generating data separately in each process could be more efficient, but due to the nature of sample sort and how the master process distributes the data to worker processes, I'm not sure whether this is possible
+    // This function uses sample sort to sort the n element array A using s samples 
     function sample_sort(A, n, s):
         MPI_Init()
         rank = MPI_Comm_rank()
-        # The number of worker processes is also the number of buckets
+        // The number of worker processes is also the number of buckets
         num_processes = MPI_Comm_size()
+        // For now, assume that n % num_processes = 0
         bucket_size = n/num_processes
 
         if rank == 0:
+            // First, the master process needs to send data to the worker processes
             for i from 0 to num_processes - 1:
                 MPI_Send(A[i:i*bucket_size], dest = i)
 
         else:
             // Worker process receives work from master process
             current_bucket = MPI_Recv(source=0)
-            quicksort(current_bucket)
-            i = 0
-            samples = []
-            # Choose s random values from current_bucket and add to samples
+            quicksort(current_bucket, current_bucket.size)
+            local_samples = []
+            // Choose s random values from current_bucket and add to local_samples
+            for i from 1 to s:
+                r = random(1, bucket_size)
+                local_samples.add(current_bucket[r])
             MPI_Send(samples, dest = 0)
 
         if rank == 0:
             master_samples = []
+            // Gather all local samples from each of the worker processes and combine into master_samples
             MPI_Gather(master_samples, MPI_Comm_World)
-            quicksort(master_samples)
+            quicksort(master_samples, master_samples.size)
 
             splitters = []
-            # Choose num_processes - 1 values from master_samples to be the splitters
-            
-            # Split elements by bucket
+            // Choose num_processes - 1 values from master_samples randomly to be the splitters
+            for i from 1 to num_processes - 1:
+                splitter = master_samples[random(1, bucket_size)]
+                local_samples.add(splitter)
 
-            buckets[num_processes]
+            quicksort(splitters, splitters.size)
+            // Split elements by bucket
+
+            buckets = [][]
             for i from 0 to n:
-                for j from 0 to num_processes
+                for j from 1 to num_processes - 1
                     if A[i] > splitters[j-1] && A[i] <= splitters[j]
                     # Put into the jth bucket
-                    
-            
+                    buckets[j].add(A[i])
+            for i from 1 to num_processes:
+                quicksort(buckets[i], buckets[i].size)
 
-    function quicksort(A, q, r)
+            # combine all buckets[i] into result
+            return result
 
+    // Sorts A recursively using quicksort
+    function quicksort(A, n):
+        // Choose the rightmost element as the pivot
+        pivot = A[n-1]
 
-    function bucket_sort(A, 
+        // elements in left will be less than or equal to A[pivot], elements in the right will be greater than or equal to A[pivot]
+        left_size = 0
+        left = []
+        right_size = 0
+        right = []
+        for i from left to right, i not equal to pivot:
+            if A[i] <= A[pivot]:
+                left.add(A[i])
+                left_size++
+            else:
+                right.add(A[i])
+                right_size++
+        sorted_left = quicksort(left, left_size) 
+        sorted_right = quicksort(right, right_size)
+        // Combine sorted_left with A[pivot] and sorted_right to create the final array result
+        return result
         
 
 ### 2c. Evaluation plan - what and how will you measure and compare
