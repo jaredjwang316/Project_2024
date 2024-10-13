@@ -409,77 +409,77 @@ They will show up in the `Thicket.metadata` if the caliper file is read into Thi
 
 Metadata for Merge Sort:
 
-| Identifier   | algorithm | programming_model | data_type | size_of_data_type | input_size | input_type | num_procs | scalability | group_num | implementation_source |
-|--------------|-----------|-------------------|-----------|-------------------|------------|------------|-----------|-------------|-----------|-----------------------|
-| 70082139  | merge     | mpi               | int       | 4                 | 67108864   | Random     | 64        | strong      | 5         | handwritten           |
-| 92921647  | merge     | mpi               | int       | 4                 | 67108864   | Random     | 256       | strong      | 5         | handwritten           |
-| 100201556 | merge     | mpi               | int       | 4                 | 1048576    | Random     | 16        | strong      | 5         | handwritten           |
-| 128178907 | merge     | mpi               | int       | 4                 | 268435456  | Random     | 8         | strong      | 5         | handwritten           |
-| 245095849 | merge     | mpi               | int       | 4                 | 16777216   | Random     | 1024      | strong      | 5         | handwritten           |
-| 295277911 | merge     | mpi               | int       | 4                 | 65536      | Random     | 64        | strong      | 5         | handwritten           |
-| 306527571 | merge     | mpi               | int       | 4                 | 16777216   | Random     | 16        | strong      | 5         | handwritten           |
-| 333945276 | merge     | mpi               | int       | 4                 | 4194304    | Random     | 512       | strong      | 5         | handwritten           |
-| 339702170 | merge     | mpi               | int       | 4                 | 262144     | Random     | 32        | strong      | 5         | handwritten           |
-| 345760193 | merge     | mpi               | int       | 4                 | 262144     | Random     | 8         | strong      | 5         | handwritten           |
-| 354404808 | merge     | mpi               | int       | 4                 | 4194304    | Random     | 2         | strong      | 5         | handwritten           |
-| 393780550 | merge     | mpi               | int       | 4                 | 1048576    | Random     | 4         | strong      | 5         | handwritten           |
-| 400251869 | merge     | mpi               | int       | 4                 | 1048576    | Random     | 256       | strong      | 5         | handwritten           |
-| 445803775 | merge     | mpi               | int       | 4                 | 16777216   | Random     | 8         | strong      | 5         | handwritten           |
-| 449538400 | merge     | mpi               | int       | 4                 | 1048576    | Random     | 512       | strong      | 5         | handwritten           |
-| 543571101 | merge     | mpi               | int       | 4                 | 67108864   | Random     | 16        | strong      | 5         | handwritten           |
-| 569294909 | merge     | mpi               | int       | 4                 | 262144     | Random     | 64        | strong      | 5         | handwritten           |
-| 617782299 | merge     | mpi               | int       | 4                 | 65536      | Random     | 2         | strong      | 5         | handwritten           |
-| 658751603 | merge     | mpi               | int       | 4                 | 1048576    | Random     | 1024      | strong      | 5         | handwritten           |
-| 665975200 | merge     | mpi               | int       | 4                 | 65536      | Random     | 8         | strong      | 5         | handwritten           |
-| 689082817 | merge     | mpi               | int       | 4                 | 67108864   | Random     | 1024      | strong      | 5         | handwritten           |
-| 699271425 | merge     | mpi               | int       | 4                 | 4194304    | Random     | 256       | strong      | 5         | handwritten           |
-| 708127808 | merge     | mpi               | int       | 4                 | 65536      | Random     | 16        | strong      | 5         | handwritten           |
-| 798563007 | merge     | mpi               | int       | 4                 | 65536      | Random     | 1024      | strong      | 5         | handwritten           |
-| 891758615 | merge     | mpi               | int       | 4                 | 16777216   | Random     | 128       | strong      | 5         | handwritten           |
-| 969954911 | merge     | mpi               | int       | 4                 | 67108864   | Random     | 128       | strong      | 5         | handwritten           |
-| 980444227 | merge     | mpi               | int       | 4                 | 4194304    | Random     | 1024      | strong      | 5         | handwritten           |
-| 1060208602| merge     | mpi               | int       | 4                 | 16777216   | Random     | 256       | strong      | 5         | handwritten           |
-| 1205757524| merge     | mpi               | int       | 4                 | 65536      | Random     | 4         | strong      | 5         | handwritten           |
-| 1228950455| merge     | mpi               | int       | 4                 | 16777216   | Random     | 512       | strong      | 5         | handwritten           |
-| 1389596601| merge     | mpi               | int       | 4                 | 268435456  | Random     | 2         | strong      | 5         | handwritten           |
-| 1422259320| merge     | mpi               | int       | 4                 | 268435456  | Random     | 4         | strong      | 5         | handwritten           |
-| 1430116159| merge     | mpi               | int       | 4                 | 4194304    | Random     | 16        | strong      | 5         | handwritten           |
-| 1515744758| merge     | mpi               | int       | 4                 | 65536      | Random     | 256       | strong      | 5         | handwritten           |
-| 1655719043| merge     | mpi               | int       | 4                 | 67108864   | Random     | 2         | strong      | 5         | handwritten           |
-| 1693159416| merge     | mpi               | int       | 4                 | 1048576    | Random     | 2         | strong      | 5         | handwritten           |
-| 1722882777| merge     | mpi               | int       | 4                 | 16777216   | Random     | 64        | strong      | 5         | handwritten           |
-| 1793904175| merge     | mpi               | int       | 4                 | 65536      | Random     | 32        | strong      | 5         | handwritten           |
-| 1802790046| merge     | mpi               | int       | 4                 | 268435456  | Random     | 256       | strong      | 5         | handwritten           |
-| 1806359314| merge     | mpi               | int       | 4                 | 262144     | Random     | 4         | strong      | 5         | handwritten           |
-| 1887681841| merge     | mpi               | int       | 4                 | 67108864   | Random     | 4         | strong      | 5         | handwritten           |
-| 1939315829| merge     | mpi               | int       | 4                 | 4194304    | Random     | 64        | strong      | 5         | handwritten           |
-| 1969675942| merge     | mpi               | int       | 4                 | 262144     | Random     | 256       | strong      | 5         | handwritten           |
-| 1996394685| merge     | mpi               | int       | 4                 | 268435456  | Random     | 128       | strong      | 5         | handwritten           |
-| 2059509548| merge     | mpi               | int       | 4                 | 16777216   | Random     | 2         | strong      | 5         | handwritten           |
-| 2107530957| merge     | mpi               | int       | 4                 | 262144     | Random     | 512       | strong      | 5         | handwritten           |
-| 2117395504| merge     | mpi               | int       | 4                 | 268435456  | Random     | 16        | strong      | 5         | handwritten           |
-| 2345026037 | merge     | mpi  | int       | 4    | 4194304 | Random  | 128      | strong     | 5            | handwritten   |
-| 2453213632 | merge     | mpi  | int       | 4    | 1048576 | Random  | 64       | strong     | 5            | handwritten   |
-| 2468782365 | merge     | mpi  | int       | 4    | 65536   | Random  | 512      | strong     | 5            | handwritten   |
-| 2536726746 | merge     | mpi  | int       | 4    | 262144  | Random  | 128      | strong     | 5            | handwritten   |
-| 2717918329 | merge     | mpi  | int       | 4    | 67108864| Random  | 32       | strong     | 5            | handwritten   |
-| 2847255854 | merge     | mpi  | int       | 4    | 262144  | Random  | 2        | strong     | 5            | handwritten   |
-| 3070276550 | merge     | mpi  | int       | 4    | 1048576 | Random  | 32       | strong     | 5            | handwritten   |
-| 3128266282 | merge     | mpi  | int       | 4    | 16777216| Random  | 4        | strong     | 5            | handwritten   |
-| 3324300931 | merge     | mpi  | int       | 4    | 262144  | Random  | 1024     | strong     | 5            | handwritten   |
-| 3334674429 | merge     | mpi  | int       | 4    | 67108864| Random  | 512      | strong     | 5            | handwritten   |
-| 3437183686 | merge     | mpi  | int       | 4    | 1048576 | Random  | 8        | strong     | 5            | handwritten   |
-| 3506142139 | merge     | mpi  | int       | 4    | 4194304 | Random  | 4        | strong     | 5            | handwritten   |
-| 3784026123 | merge     | mpi  | int       | 4    | 4194304 | Random  | 8        | strong     | 5            | handwritten   |
-| 3901722007 | merge     | mpi  | int       | 4    | 1048576 | Random  | 128      | strong     | 5            | handwritten   |
-| 3955464802 | merge     | mpi  | int       | 4    | 65536   | Random  | 128      | strong     | 5            | handwritten   |
-| 4011133758 | merge     | mpi  | int       | 4    | 268435456| Random | 16       | strong     | 5            | handwritten   |
-| 4013905133 | merge     | mpi  | int       | 4    | 268435456| Random | 64       | strong     | 5            | handwritten   |
-| 4141344861 | merge     | mpi  | int       | 4    | 67108864| Random  | 8        | strong     | 5            | handwritten   |
-| 4218001622 | merge     | mpi  | int       | 4    | 268435456| Random | 512      | strong     | 5            | handwritten   |
-| 4252203976 | merge     | mpi  | int       | 4    | 16777216| Random  | 32       | strong     | 5            | handwritten   |
-| 4267175009 | merge     | mpi  | int       | 4    | 268435456| Random | 32       | strong     | 5            | handwritten   |
-| 4294640006 | merge     | mpi  | int       | 4    | 4194304 | Random  | 32       | strong     | 5            | handwritten   |
+| algorithm | programming_model | data_type | size_of_data_type | input_size | input_type | num_procs | scalability | group_num | implementation_source |
+|-----------|-------------------|-----------|--------------------|------------|-------------|-----------|--------------|-----------|----------------------|
+| merge     | mpi               | int       | 4                  | 65536      | Random      | 2         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 65536      | Random      | 4         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 65536      | Random      | 8         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 65536      | Random      | 16        | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 65536      | Random      | 32        | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 65536      | Random      | 64        | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 65536      | Random      | 128       | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 65536      | Random      | 256       | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 65536      | Random      | 512       | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 65536      | Random      | 1024      | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 262144     | Random      | 2         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 262144     | Random      | 4         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 262144     | Random      | 8         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 262144     | Random      | 16        | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 262144     | Random      | 32        | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 262144     | Random      | 64        | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 262144     | Random      | 128       | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 262144     | Random      | 256       | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 262144     | Random      | 512       | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 262144     | Random      | 1024      | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 1048576    | Random      | 2         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 1048576    | Random      | 4         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 1048576    | Random      | 8         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 1048576    | Random      | 16        | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 1048576    | Random      | 32        | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 1048576    | Random      | 64        | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 1048576    | Random      | 128       | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 1048576    | Random      | 256       | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 1048576    | Random      | 512       | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 1048576    | Random      | 1024      | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 4194304    | Random      | 2         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 4194304    | Random      | 4         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 4194304    | Random      | 8         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 4194304    | Random      | 16        | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 4194304    | Random      | 32        | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 4194304    | Random      | 64        | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 4194304    | Random      | 128       | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 4194304    | Random      | 256       | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 4194304    | Random      | 512       | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 4194304    | Random      | 1024      | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 16777216   | Random      | 2         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 16777216   | Random      | 4         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 16777216   | Random      | 8         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 16777216   | Random      | 16        | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 16777216   | Random      | 32        | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 16777216   | Random      | 64        | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 16777216   | Random      | 128       | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 16777216   | Random      | 256       | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 16777216   | Random      | 512       | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 16777216   | Random      | 1024      | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 67108864   | Random      | 2         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 67108864   | Random      | 4         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 67108864   | Random      | 8         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 67108864   | Random      | 16        | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 67108864   | Random      | 32         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 67108864   | Random      | 64         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 67108864   | Random      | 128       | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 67108864   | Random      | 256       | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 67108864   | Random      | 512       | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 67108864   | Random      | 1024      | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 268435456  | Random      | 2         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 268435456  | Random      | 4         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 268435456  | Random      | 8         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 268435456  | Random      | 16        | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 268435456  | Random      | 32         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 268435456  | Random      | 64         | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 268435456  | Random      | 128       | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 268435456  | Random      | 256       | strong       | 5         | handwritten          |
+| merge     | mpi               | int       | 4                  | 268435456  | Random      | 512       | strong       | 5         | handwritten          |
 
 ### **See the `Builds/` directory to find the correct Caliper configurations to get the performance metrics.** They will show up in the `Thicket.dataframe` when the Caliper file is read into Thicket.
 ## 4. Performance evaluation
