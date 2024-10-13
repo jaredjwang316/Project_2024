@@ -409,8 +409,8 @@ They will show up in the `Thicket.metadata` if the caliper file is read into Thi
 
 Metadata for Merge Sort:
 
-| profile   | algorithm | programming_model | data_type | size_of_data_type | input_size | input_type | num_procs | scalability | group_num | implementation_source |
-|-----------|-----------|-------------------|-----------|-------------------|------------|------------|-----------|-------------|-----------|-----------------------|
+| Identifier   | algorithm | programming_model | data_type | size_of_data_type | input_size | input_type | num_procs | scalability | group_num | implementation_source |
+|--------------|-----------|-------------------|-----------|-------------------|------------|------------|-----------|-------------|-----------|-----------------------|
 | 70082139  | merge     | mpi               | int       | 4                 | 67108864   | Random     | 64        | strong      | 5         | handwritten           |
 | 92921647  | merge     | mpi               | int       | 4                 | 67108864   | Random     | 256       | strong      | 5         | handwritten           |
 | 100201556 | merge     | mpi               | int       | 4                 | 1048576    | Random     | 16        | strong      | 5         | handwritten           |
