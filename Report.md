@@ -384,6 +384,10 @@ CALI_MARK_END("comp");
 └─ 0.440 correctness_check
 ```
 
+Calltree for Merge Sort:
+
+![Calltree for Merge Sort](Calltree_for_merge_sort.png)
+
 ### 3b. Collect Metadata
 
 Have the following code in your programs to collect metadata:
