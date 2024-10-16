@@ -6,6 +6,7 @@ find_package(adiak REQUIRED)
 
 add_executable(mergesort ../mergesort.cpp)
 add_executable(bitonicsort ../bitonicsort.cpp)
+add_executable(radixsort ../radixsort.cpp)
 
 message(STATUS "MPI includes : ${MPI_INCLUDE_PATH}")
 message(STATUS "Caliper includes : ${caliper_INCLUDE_DIR}")
@@ -18,3 +19,5 @@ target_link_libraries(mergesort PRIVATE MPI::MPI_CXX)
 target_link_libraries(mergesort PRIVATE caliper)
 target_link_libraries(bitonicsort PRIVATE MPI::MPI_CXX)
 target_link_libraries(bitonicsort PRIVATE caliper)
+target_link_libraries(radixsort PRIVATE MPI::MPI_CXX)
+target_link_libraries(radixsort PRIVATE caliper)
