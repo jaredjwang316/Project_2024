@@ -20,13 +20,23 @@ void swap(int& a, int& b) {
     b = temp;
 }
 
-bool is_sorted(const std::vector<int>& arr, bool ascending) {
+bool is_sorted(const std::vector<int>& arr) {
     for (size_t i = 1; i < arr.size(); i++) {
-        if (arr[i] > arr[i - 1] != ascending) {
+        if (arr[i] < arr[i - 1]) {
             return false;
         }
     }
     return true;
+}
+
+void print_arr(const std::vector<int>& arr) {
+    std::cout << "[";
+    for (int i = 0; i < arr.size(); i++) {
+        std::cout << arr[i];
+        if (i < arr.size() - 1)
+            std::cout << ", ";
+    }
+    std::cout << "]" << std::endl;
 }
 
 int main(int argc, char** argv) {
@@ -42,11 +52,9 @@ int main(int argc, char** argv) {
         return 0;
     }
     
-    CALI_MARK_BEGIN("MPI_Init");
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &n_procs);
-    CALI_MARK_END("MPI_Init");
 
     // Start Adiak and register metadata
     adiak::init(nullptr);
@@ -76,10 +84,8 @@ int main(int argc, char** argv) {
     adiak::value("group_num", group_number);
     adiak::value("implementation_source", implementation_source);
 
-    CALI_MARK_BEGIN("MPI_Comm_dup");  // Begin MPI_Comm_dup
     MPI_Comm comm_dup;
     MPI_Comm_dup(MPI_COMM_WORLD, &comm_dup);
-    CALI_MARK_END("MPI_Comm_dup");  // End MPI_Comm_dup
 
     std::vector<int> arr;
     std::vector<int> local_arr;
@@ -89,7 +95,7 @@ int main(int argc, char** argv) {
     if (rank == MASTER) {
         arr.resize(global_size);
         for (int i = 0; i < global_size; ++i) {
-            arr[i] = rand() % 1000 - 500;
+            arr[i] = rand() % 1000;
         }
     }
     local_arr.resize(sub_arr_size);
@@ -97,15 +103,11 @@ int main(int argc, char** argv) {
 
     CALI_MARK_BEGIN("comm");
         // Create barrier for synchronization
-        CALI_MARK_BEGIN("MPI_Barrier");
         MPI_Barrier(MPI_COMM_WORLD);
-        CALI_MARK_END("MPI_Barrier");
 
         // Distribute array across processes
         CALI_MARK_BEGIN("comm_large");
-            CALI_MARK_BEGIN("MPI_Scatter");
             MPI_Scatter(arr.data(), sub_arr_size, MPI_INT, local_arr.data(), sub_arr_size, MPI_INT, MASTER, MPI_COMM_WORLD);
-            CALI_MARK_END("MPI_Scatter");
         CALI_MARK_END("comm_large");
     CALI_MARK_END("comm");
 
@@ -119,9 +121,7 @@ int main(int argc, char** argv) {
     // Gather sorted data back to master
     CALI_MARK_BEGIN("comm");
         CALI_MARK_BEGIN("comm_large");
-            CALI_MARK_BEGIN("MPI_Gather");
-            MPI_Gather(local_arr.data(), sub_arr_size, MPI_INT, arr.data(), global_size, MPI_INT, MASTER, MPI_COMM_WORLD);
-            CALI_MARK_END("MPI_Gather");
+            MPI_Gather(local_arr.data(), sub_arr_size, MPI_INT, arr.data(), sub_arr_size, MPI_INT, MASTER, MPI_COMM_WORLD);
         CALI_MARK_END("comm_large");
     CALI_MARK_END("comm");
     
@@ -138,7 +138,7 @@ int main(int argc, char** argv) {
         CALI_MARK_END("comp");
 
         CALI_MARK_BEGIN("correctness_check");
-        if (is_sorted(arr, true)) {
+        if (is_sorted(arr)) {
             std::cout << "Array is sorted correctly." << std::endl;
         } else {
             std::cout << "Array is NOT sorted correctly." << std::endl;
@@ -146,10 +146,8 @@ int main(int argc, char** argv) {
         CALI_MARK_END("correctness_check");
     }
 
-    CALI_MARK_BEGIN("MPI_Finalize");
     adiak::fini();
     MPI_Finalize();
-    CALI_MARK_END("MPI_Finalize");
     return 0;
 }
 
