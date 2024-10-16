@@ -65,11 +65,9 @@ int main(int argc, char *argv[])
     int size, rank;
     std::vector<int> array;
 
-    CALI_MARK_BEGIN("MPI_Init");
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    CALI_MARK_END("MPI_Init");
 
     // Metadata
     adiak::init(nullptr);
@@ -89,10 +87,8 @@ int main(int argc, char *argv[])
     adiak::value("group_num", 5);
     adiak::value("implementation_source", std::string("handwritten"));
 
-    CALI_MARK_BEGIN("MPI_Comm_dup");
     MPI_Comm comm_dup;
     MPI_Comm_dup(MPI_COMM_WORLD, &comm_dup);
-    CALI_MARK_END("MPI_Comm_dup");
 
     // Data initialization
     CALI_MARK_BEGIN("data_init_runtime");
@@ -149,9 +145,9 @@ int main(int argc, char *argv[])
     CALI_MARK_END("comm");
 
     // Master process creates final sorted array
-    CALI_MARK_BEGIN("comp");
     if (rank == MASTER)
     {
+        CALI_MARK_BEGIN("comp");
         CALI_MARK_BEGIN("comp_small");
         std::vector<int> prefixSums = prefixSum(globalCounts);
         std::vector<int> result(arrSize);
@@ -184,6 +180,7 @@ int main(int argc, char *argv[])
         std::cout << std::endl;
 
         */
+        CALI_MARK_END("comp");
 
         // Check correctness
         CALI_MARK_BEGIN("correctness_check");
@@ -197,12 +194,9 @@ int main(int argc, char *argv[])
         }
         CALI_MARK_END("correctness_check");
     }
-    CALI_MARK_END("comp");
 
-    CALI_MARK_BEGIN("MPI_Finalize");
     adiak::fini();
     MPI_Finalize();
-    CALI_MARK_END("MPI_Finalize");
 
     return 0;
 }
