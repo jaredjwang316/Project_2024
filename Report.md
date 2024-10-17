@@ -564,6 +564,82 @@ Metadata for Bitonic Sort:
 | bitonic   | mpi               | int       | 4                  |    4194304 | Random      |        16 | strong       |          5 | handwritten         |
 | bitonic   | mpi               | int       | 4                  |    4194304 | Random      |       512 | strong       |          5 | handwritten         |
 
+Metadata for Radix Sort:
+
+| algorithm | programming_model | data_type | size_of_data_type | input_size | input_type | num_procs | scalability | group_num | implementation_source |
+|---|---|---|---|---|---|---|---|---|----|
+| radix | mpi | int | 4 | 65536 | Random | 1024 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 65536 | Random |  512 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 65536 | Random |  256 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 65536 | Random |  128 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 65536 | Random |   64 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 65536 | Random |   32 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 65536 | Random |   16 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 65536 | Random |    8 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 65536 | Random |    4 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 65536 | Random |    2 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 262144 | Random | 1024 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 262144 | Random |  512 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 262144 | Random |  256 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 262144 | Random |  128 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 262144 | Random |   64 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 262144 | Random |   32 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 262144 | Random |   16 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 262144 | Random |    8 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 262144 | Random |    4 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 262144 | Random |    2 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 1048576 | Random | 1024 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 1048576 | Random |  512 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 1048576 | Random |  256 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 1048576 | Random |  128 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 1048576 | Random |   64 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 1048576 | Random |   32 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 1048576 | Random |   16 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 1048576 | Random |    8 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 1048576 | Random |    4 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 1048576 | Random |    2 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 4194304 | Random | 1024 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 4194304 | Random |  512 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 4194304 | Random |  256 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 4194304 | Random |  128 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 4194304 | Random |   64 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 4194304 | Random |   32 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 4194304 | Random |   16 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 4194304 | Random |    8 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 4194304 | Random |    4 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 4194304 | Random |    2 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 16777216 | Random | 1024 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 16777216 | Random |  512 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 16777216 | Random |  256 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 16777216 | Random |  128 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 16777216 | Random |   64 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 16777216 | Random |   32 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 16777216 | Random |   16 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 16777216 | Random |    8 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 16777216 | Random |    4 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 16777216 | Random |    2 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 67108864 | Random | 1024 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 67108864 | Random |  512 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 67108864 | Random |  256 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 67108864 | Random |  128 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 67108864 | Random |   64 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 67108864 | Random |   32 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 67108864 | Random |   16 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 67108864 | Random |    8 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 67108864 | Random |    4 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 67108864 | Random |    2 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 268435456 | Random | 1024 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 268435456 | Random |  512 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 268435456 | Random |  256 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 268435456 | Random |  128 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 268435456 | Random |   64 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 268435456 | Random |   32 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 268435456 | Random |   16 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 268435456 | Random |    8 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 268435456 | Random |    4 | strong | 5 | handwritten |
+| radix | mpi | int | 4 | 268435456 | Random |    2 | strong | 5 | handwritten |
+
+
 ### **See the `Builds/` directory to find the correct Caliper configurations to get the performance metrics.** They will show up in the `Thicket.dataframe` when the Caliper file is read into Thicket.
 ## 4. Performance evaluation
 
