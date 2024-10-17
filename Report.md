@@ -396,6 +396,10 @@ Calltree for Radx Sort:
 
 ![Calltree for Radix Sort](Calltree_for_radix_sort.png)
 
+Calltree for Sample Sort:
+
+![Calltree for Sample Sort](Calltree_for_sample_sort.png)
+
 ### 3b. Collect Metadata
 
 Have the following code in your programs to collect metadata:
