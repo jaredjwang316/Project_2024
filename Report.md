@@ -392,6 +392,10 @@ Calltree for Bitonic Sort:
 
 ![Calltree for Bitonic Sort](Calltree_for_bitonic_sort.png)
 
+Calltree for Radx Sort:
+
+![Calltree for Radix Sort](Calltree_for_radix_sort.png)
+
 ### 3b. Collect Metadata
 
 Have the following code in your programs to collect metadata:
