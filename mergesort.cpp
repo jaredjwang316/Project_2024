@@ -34,7 +34,7 @@ std::vector<int> merge(const std::vector<int>& left, const std::vector<int>& rig
 }
 
 // Custom merge sort implementation
-std::vector<int> merge_sort(std::vector<int> arr) {
+std::vector<int> merge_sort(std::vector<int>& arr) {
     if (arr.size() <= 1) {
         return arr;  // Base case
     }
