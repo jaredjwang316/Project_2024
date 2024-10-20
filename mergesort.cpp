@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <string>
 #include "mpi.h"
 #include <caliper/cali.h>
 #include <caliper/cali-manager.h>
@@ -68,17 +69,22 @@ int main(int argc, char *argv[]) {
 
     const int MASTER = 0;
 
-    int sizeOfArray;
-    if (argc == 2) {
+    int sizeOfArray, array_type;
+
+    if (argc == 3) {
         sizeOfArray = atoi(argv[1]);
+        array_type = atoi(argv[2]);
     } else {
-        std::cout << "\n Please provide the size of the array to be sorted" << std::endl;
-        return 0;
+        std::cout << "Please provide the size of the array and the array type." << std::endl;
+        return 1;
     }
+
+
 
     int numtasks, taskid;
     std::vector<int> array;
     std::vector<int> subarray;
+
 
     // Initialize MPI
     CALI_MARK_BEGIN("MPI_Init");
@@ -88,6 +94,54 @@ int main(int argc, char *argv[]) {
     MPI_Comm_rank(MPI_COMM_WORLD, &taskid);
     
     CALI_MARK_END("MPI_Init");  // End MPI_Init
+
+    std::string input_type = "";
+    if (taskid == MASTER) {
+        array.resize(sizeOfArray);
+
+        switch (array_type) {
+            case 1:
+                // Generate random array
+                for (int i = 0; i < sizeOfArray; i++) {
+                    array[i] = rand() % 1000;
+                }
+                input_type = "Random";
+                break;
+            case 2:
+                // Generate sorted array
+                for (int i = 0; i < sizeOfArray; i++) {
+                    array[i] = i;
+                }
+                input_type = "Sorted";
+                break;
+            case 3:
+                // Generate reverse sorted array
+                for (int i = 0; i < sizeOfArray; i++) {
+                    array[i] = sizeOfArray - i;
+                }
+                input_type = "Reverse Sorted";
+                break;
+            case 4:
+                // Generate 1% perturbed array
+                for (int i = 0; i < sizeOfArray; i++) {
+                    array[i] = i;
+                }
+                // Swap 1% of elements
+                for (int i = 0; i < sizeOfArray / 100; i++) {
+                    int idx1 = rand() % sizeOfArray;
+                    int idx2 = rand() % sizeOfArray;
+                    std::swap(array[idx1], array[idx2]);
+                }
+                input_type = "1% Perturbed";
+                break;
+            default:
+                std::cout << "Invalid array type. Please use 1 for random, 2 for sorted, 3 for reverse sorted, or 4 for 1% perturbed." << std::endl;
+                return 1;
+        }
+        
+        std::cout << "Generated " << input_type << " array of size " << sizeOfArray << std::endl;
+    }
+
 
     // Start Adiak and register metadata
     adiak::init(nullptr);
@@ -101,7 +155,6 @@ int main(int argc, char *argv[]) {
     std::string programming_model = "mpi";
     std::string data_type = "int";
     int size_of_data_type = sizeof(int);
-    std::string input_type = "Random";
     std::string scalability = "strong";  
     int group_number = 5;  
     std::string implementation_source = "handwritten";  
