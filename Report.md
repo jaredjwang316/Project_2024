@@ -649,15 +649,15 @@ Metadata for Radix Sort:
 
 Metadata for sample sort:
 
-| algorithm | programming_model | data_type | size_of_data_type | input_size | input_type | num_procs | scalability | group_num	| implementation_source | profile|
-|---|---|---|---|---|---|---|---|---|---|---|
-| 295277911	| merge	| mpi | int |	4	|65536|	Random|	64	|strong	|5	|handwritten|
-|617782299|	merge	|mpi	|int|	4	|65536|	Random	|2	|strong	|5	|handwritten|
-|665975200|	merge	|mpi	|int|	4	|65536	|Random	|8	|strong	|5	|handwritten|
-|708127808|	merge|mpi	|int|	4	|65536	|Random	|16	|strong	|5	|handwritten|
-|1205757524|merge|mpi|int|4|65536|Random|4|strong|5|handwritten|
-|1793904175|merge|mpi|int|4|65536|Random|32|strong|5|handwritten|
-|3955464802|merge|mpi|int|4|65536|Random|128|strong|5|handwritten|
+| algorithm | programming_model | data_type | size_of_data_type | input_size | input_type | num_procs | scalability | group_num	| implementation_source |
+|---|---|---|---|---|---|---|---|---|---|
+| sample	| mpi | int |	4	|65536|	Random|	64	|strong	|5	|handwritten|
+|	sample	|mpi	|int|	4	|65536|	Random	|2	|strong	|5	|handwritten|
+|	sample	|mpi	|int|	4	|65536	|Random	|8	|strong	|5	|handwritten|
+|	sample|mpi	|int|	4	|65536	|Random	|16	|strong	|5	|handwritten|
+|sample|mpi|int|4|65536|Random|4|strong|5|handwritten|
+|sample|mpi|int|4|65536|Random|32|strong|5|handwritten|
+|sample|mpi|int|4|65536|Random|128|strong|5|handwritten|
 
 
 
