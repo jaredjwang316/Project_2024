@@ -56,8 +56,8 @@ std::vector<int> merge_sort(std::vector<int>& arr) {
 }
 
 // Function to check if the array is sorted
-bool is_sorted(const std::vector<int>& arr) {
-    for (size_t i = 1; i < arr.size(); i++) {
+bool is_sorted(const int* arr, int size) {
+    for (int i = 1; i < size; i++) {
         if (arr[i] < arr[i - 1]) {
             return false;
         }
@@ -182,13 +182,6 @@ int main(int argc, char** argv) {
         std::cerr << "Invalid input! Please enter a value between 1 and 4." << std::endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
-    
-
-    // Broadcast the selected array type to all processes
-    MPI_Bcast(&array_type, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-    // Initialize data
-    int* A = nullptr;
 
     // Algorithm-specific metadata
     std::string algorithm = "merge";
@@ -205,6 +198,8 @@ int main(int argc, char** argv) {
     adiak::value("size_of_data_type", size_of_data_type);
     adiak::value("input_size", sizeOfArray);
 
+    // Initialize data
+    int* A = nullptr;
     if (rank == 0) {
         CALI_MARK_BEGIN("data_init_runtime"); // Start data initialization region
         A = new int[sizeOfArray];
@@ -227,47 +222,34 @@ int main(int argc, char** argv) {
     MPI_Barrier(MPI_COMM_WORLD);
     CALI_MARK_END("comm");
 
-    // Broadcast the size of the array to all processes
-    MPI_Bcast(&sizeOfArray, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     // Calculate sub-array size and allocate space for local sub-array
     int sub_array_size = sizeOfArray / size;
     int* local_array = new int[sub_array_size];
 
-    // Communication - distribute the array
-    if (rank == 0) {
-        for (int i = 1; i < size; i++) {
-            CALI_MARK_BEGIN("comm_large"); // Start of large communication region
-            MPI_Send(A + i * sub_array_size, sub_array_size, MPI_INT, i, 0, MPI_COMM_WORLD);
-            CALI_MARK_END("comm_large"); // End of large communication region
-        }
-        std::copy(A, A + sub_array_size, local_array);
-    } else {
-        CALI_MARK_BEGIN("comm_large"); // Start of small communication region
-        MPI_Recv(local_array, sub_array_size, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        CALI_MARK_END("comm_large"); // End of small communication region
-    }
+    // Scatter the data across all processes
+    CALI_MARK_BEGIN("MPI_Scatter");
+    MPI_Scatter(A, sub_array_size, MPI_INT, local_array, sub_array_size, MPI_INT, MASTER, MPI_COMM_WORLD);
+    CALI_MARK_END("MPI_Scatter");
 
     // Call the parallel merge sort function
     parallel_merge_sort(local_array, sub_array_size, rank, size);
 
+    // Gather the sorted sub-arrays back to the root process
+    int* sorted_array = nullptr;
+    if (rank == 0) {
+        sorted_array = new int[sizeOfArray];
+    }
+
+    CALI_MARK_BEGIN("MPI_Gather");
+    MPI_Gather(local_array, sub_array_size, MPI_INT, sorted_array, sub_array_size, MPI_INT, MASTER, MPI_COMM_WORLD);
+    CALI_MARK_END("MPI_Gather");
+    
     // Communication - gather the sorted arrays (final merge)
     if (rank == 0) {
-        std::vector<int> sorted_array(sizeOfArray);
-        std::copy(local_array, local_array + sub_array_size, sorted_array.begin());
-
-        for (int i = 1; i < size; i++) {
-            CALI_MARK_BEGIN("comm_large"); // Start of large communication region
-            MPI_Recv(sorted_array.data() + i * sub_array_size, sub_array_size, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            CALI_MARK_END("comm_large"); // End of large communication region
-        }
-
-        // Final merge on the root process (optional, depending on your setup)
-        // sorted_array = merge_sort(sorted_array); // Uncomment if a final merge is needed
-        
         // Check correctness
         CALI_MARK_BEGIN("correctness_check"); // Start correctness check region
-        if (is_sorted(sorted_array)) {
+        if (is_sorted(sorted_array, sizeOfArray)) {
             std::cout << "Array is sorted." << std::endl;
         } else {
             std::cout << "Array is NOT sorted." << std::endl;
@@ -276,6 +258,7 @@ int main(int argc, char** argv) {
 
         // Cleanup
         delete[] A; // Free allocated memory
+        delete[] sorted_array;
     }
 
     delete[] local_array; // Free local array memory
