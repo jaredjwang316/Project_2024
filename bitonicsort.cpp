@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <random>
 #include <cmath>
 #include <caliper/cali.h>
 #include <caliper/cali-manager.h>
@@ -39,6 +40,11 @@ void print_arr(const std::vector<int>& arr) {
     std::cout << "]" << std::endl;
 }
 
+void initialize_sorted(std::vector<int>& arr, int n, int rank);
+void initialize_random(std::vector<int>& arr, int n, int rank);
+void initialize_perturbed(std::vector<int>& arr, int n, int rank, float prob);
+void initialize_reverse(std::vector<int>& arr, int n, int rank, int n_proc);
+
 int main(int argc, char** argv) {
     CALI_CXX_MARK_FUNCTION;
 
@@ -55,6 +61,7 @@ int main(int argc, char** argv) {
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &n_procs);
+    MPI_Status status;
 
     // Start Adiak and register metadata
     adiak::init(nullptr);
@@ -87,29 +94,11 @@ int main(int argc, char** argv) {
     MPI_Comm comm_dup;
     MPI_Comm_dup(MPI_COMM_WORLD, &comm_dup);
 
-    std::vector<int> arr;
-    std::vector<int> local_arr;
-    sub_arr_size = global_size / n_procs;
-
     CALI_MARK_BEGIN("data_init_runtime");
-    if (rank == MASTER) {
-        arr.resize(global_size);
-        for (int i = 0; i < global_size; ++i) {
-            arr[i] = rand() % 1000;
-        }
-    }
-    local_arr.resize(sub_arr_size);
+    std::vector<int> local_arr(global_size);
+    sub_arr_size = global_size / n_procs;
+    initialize_random(local_arr, sub_arr_size, rank);
     CALI_MARK_END("data_init_runtime");
-
-    CALI_MARK_BEGIN("comm");
-        // Create barrier for synchronization
-        MPI_Barrier(MPI_COMM_WORLD);
-
-        // Distribute array across processes
-        CALI_MARK_BEGIN("comm_large");
-            MPI_Scatter(arr.data(), sub_arr_size, MPI_INT, local_arr.data(), sub_arr_size, MPI_INT, MASTER, MPI_COMM_WORLD);
-        CALI_MARK_END("comm_large");
-    CALI_MARK_END("comm");
 
     // bitonically sort local distributed arrays (ascending if rank is even)
     CALI_MARK_BEGIN("comp");
@@ -117,29 +106,44 @@ int main(int argc, char** argv) {
         local_bitonic_sort(local_arr, 0, local_arr.size(), rank % 2 == 0);
         CALI_MARK_END("comp_large");
     CALI_MARK_END("comp");
-    
-    // Gather sorted data back to master
+
     CALI_MARK_BEGIN("comm");
-        CALI_MARK_BEGIN("comm_large");
-            MPI_Gather(local_arr.data(), sub_arr_size, MPI_INT, arr.data(), sub_arr_size, MPI_INT, MASTER, MPI_COMM_WORLD);
-        CALI_MARK_END("comm_large");
+        // Create barrier for synchronization
+        MPI_Barrier(MPI_COMM_WORLD);
     CALI_MARK_END("comm");
+
+    // iteratively and parallelly merge bitonic pairs of locally sorted subarrays
+    int step = 1;
+    while (step < n_procs) {
+        int step_size = step * sub_arr_size;
+        if (rank % (step * 2) == 0) { // receive from partner
+            CALI_MARK_BEGIN("comm");
+                CALI_MARK_BEGIN("comm_large");
+                    MPI_Recv(local_arr.data() + step_size, step_size, MPI_INT, rank + step, 0, MPI_COMM_WORLD, &status);
+                CALI_MARK_END("comm_large");
+            CALI_MARK_END("comm");
+
+            CALI_MARK_BEGIN("comp");
+                CALI_MARK_BEGIN("comp_large");
+                    local_bitonic_merge(local_arr, 0, step_size * 2, rank % (step * 4) == 0);
+                CALI_MARK_END("comp_large");
+            CALI_MARK_END("comp");
+        }
+        else { // send to partner and quit
+            CALI_MARK_BEGIN("comm");
+                CALI_MARK_BEGIN("comm_large");
+                    MPI_Send(local_arr.data(), step_size, MPI_INT, rank - step, 0, MPI_COMM_WORLD);
+                CALI_MARK_END("comm_large");
+            CALI_MARK_END("comm");
+            break;
+        }
+        step *= 2;
+    }
     
     if (rank == MASTER) {
-        CALI_MARK_BEGIN("comp");
-        CALI_MARK_BEGIN("comp_large");
-        for (int step = 2; step <= n_procs; step *= 2) {
-            int pairwise_count = sub_arr_size * step;
-            for (int i = 0; i < n_procs / step; i++) {
-                local_bitonic_merge(arr, i * pairwise_count, pairwise_count, i % 2 == 0);
-            }
-        }
-        CALI_MARK_END("comp_large");
-        CALI_MARK_END("comp");
-
         CALI_MARK_BEGIN("correctness_check");
-        if (is_sorted(arr)) {
-            std::cout << "Array is sorted correctly." << std::endl;
+        if (is_sorted(local_arr)) {
+            std::cout << "Array of length " << local_arr.size() << " is sorted correctly." << std::endl;
         } else {
             std::cout << "Array is NOT sorted correctly." << std::endl;
         }
@@ -170,4 +174,39 @@ void local_bitonic_merge(std::vector<int>& arr, int low, int count, bool ascendi
     }
     local_bitonic_merge(arr, low, k, ascending);
     local_bitonic_merge(arr, low + k, k, ascending);
+}
+
+void initialize_sorted(std::vector<int>& arr, int n, int rank) {
+    for (int i = 0; i < n; i++) {
+        arr[i] = rank * n + i;
+    }
+}
+
+void initialize_random(std::vector<int>& arr, int n, int rank) {
+    for (int i = 0; i < n; i++) {
+        arr[i] = rand() % 10000;
+    }
+}
+
+void initialize_perturbed(std::vector<int>& arr, int n, int rank, float prob) {
+    for (int i = 0; i < n; i++) {
+        arr[i] = rank * n + i;
+    }
+
+    int n_perturb = static_cast<int>(n * prob);
+
+    std::mt19937 rng(10);
+    std::uniform_int_distribution<int> dist(0, n - 1);
+
+    for (size_t i = 0; i < n_perturb; i++) {
+        int i1 = dist(rng);
+        int i2 = dist(rng);
+        std::swap(arr[i1], arr[i2]);
+    }
+}
+
+void initialize_reverse(std::vector<int>& arr, int n, int rank, int n_proc) {
+    for (int i = 0; i < n; i++) {
+        arr[i] = (n_proc - rank) * n - i;
+    }
 }
