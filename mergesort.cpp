@@ -68,7 +68,7 @@ bool is_sorted(const std::vector<int>& arr) {
 // Function to generate an array based on user input
 void generate_array(int* subarray, int sizeOfArray, int array_type) {
     srand(static_cast<unsigned int>(time(0))); // Seed random number generator
-    string input_type = "";
+    std::string input_type = "";
     for (int i = 0; i < sizeOfArray; i++) {
         switch (array_type) {
             case 1:
@@ -177,20 +177,12 @@ int main(int argc, char** argv) {
     adiak::cmdline();  // Command line used to launch the job
     adiak::clustername();   // Name of the cluster
 
-    // Input: Specify the total number of elements and array type
-    int N = 100; // Total number of elements, can be replaced by actual input
-    int array_type = 0; // 1 for random, 2 for sorted, 3 for reverse sorted, 4 for 1% perturbed
-
-    if (rank == 0) {
-        std::cout << "Enter the array type (1: Random, 2: Sorted, 3: Reverse Sorted, 4: 1% Perturbed): ";
-        std::cin >> array_type;
-
-        // Validate input
-        if (array_type < 1 || array_type > 4) {
-            std::cerr << "Invalid input! Please enter a value between 1 and 4." << std::endl;
-            MPI_Abort(MPI_COMM_WORLD, 1);
-        }
+    // Validate input
+    if (array_type < 1 || array_type > 4) {
+        std::cerr << "Invalid input! Please enter a value between 1 and 4." << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 1);
     }
+    
 
     // Broadcast the selected array type to all processes
     MPI_Bcast(&array_type, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -211,12 +203,12 @@ int main(int argc, char** argv) {
     adiak::value("programming_model", programming_model);
     adiak::value("data_type", data_type);
     adiak::value("size_of_data_type", size_of_data_type);
-    adiak::value("input_size", sizeOfArray)
+    adiak::value("input_size", sizeOfArray);
 
     if (rank == 0) {
         CALI_MARK_BEGIN("data_init_runtime"); // Start data initialization region
-        A = new int[N];
-        generate_array(A, N, array_type); // Generate the array based on user input
+        A = new int[sizeOfArray];
+        generate_array(A, sizeOfArray, array_type); // Generate the array based on user input
         CALI_MARK_END("data_init_runtime"); // End data initialization region
     }
 
@@ -236,10 +228,10 @@ int main(int argc, char** argv) {
     CALI_MARK_END("comm");
 
     // Broadcast the size of the array to all processes
-    MPI_Bcast(&N, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&sizeOfArray, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     // Calculate sub-array size and allocate space for local sub-array
-    int sub_array_size = N / size;
+    int sub_array_size = sizeOfArray / size;
     int* local_array = new int[sub_array_size];
 
     // Communication - distribute the array
@@ -261,7 +253,7 @@ int main(int argc, char** argv) {
 
     // Communication - gather the sorted arrays (final merge)
     if (rank == 0) {
-        std::vector<int> sorted_array(N);
+        std::vector<int> sorted_array(sizeOfArray);
         std::copy(local_array, local_array + sub_array_size, sorted_array.begin());
 
         for (int i = 1; i < size; i++) {
