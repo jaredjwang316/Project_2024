@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <cstdlib> // For rand()
+#include <ctime>   // For time()
 #include "mpi.h"
 #include <caliper/cali.h>
 #include <caliper/cali-manager.h>
@@ -8,29 +10,29 @@
 
 // Function to merge two sorted arrays
 std::vector<int> merge(const std::vector<int>& left, const std::vector<int>& right) {
+    size_t total_size = left.size() + right.size();
     std::vector<int> merged;
-    size_t i = 0, j = 0;
-    
+    merged.resize(total_size); // Preallocate memory
+
+    size_t i = 0, j = 0, k = 0;
+
     // Merge elements from both halves
     while (i < left.size() && j < right.size()) {
         if (left[i] < right[j]) {
-            merged.push_back(left[i]);
-            i++;
+            merged[k++] = left[i++];
         } else {
-            merged.push_back(right[j]);
-            j++;
+            merged[k++] = right[j++];
         }
     }
+
     // Append any remaining elements from left or right
     while (i < left.size()) {
-        merged.push_back(left[i]);
-        i++;
+        merged[k++] = left[i++];
     }
     while (j < right.size()) {
-        merged.push_back(right[j]);
-        j++;
+        merged[k++] = right[j++];
     }
-    
+
     return merged;
 }
 
@@ -63,233 +65,162 @@ bool is_sorted(const std::vector<int>& arr) {
     return true;
 }
 
-
-int main(int argc, char *argv[]) {
-    CALI_CXX_MARK_FUNCTION;
-
-    const int MASTER = 0;
-
-    int sizeOfArray, array_type;
-
-    if (argc == 3) {
-        sizeOfArray = atoi(argv[1]);
-        array_type = atoi(argv[2]);
-    } else {
-        std::cout << "Please provide the size of the array and the array type." << std::endl;
-        return 1;
-    }
-
-
-
-    int numtasks, taskid;
-    std::vector<int> array;
-    std::vector<int> subarray;
-
-
-    // Initialize MPI
-    CALI_MARK_BEGIN("MPI_Init");
-    
-    MPI_Init(&argc, &argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &numtasks);
-    MPI_Comm_rank(MPI_COMM_WORLD, &taskid);
-    
-    CALI_MARK_END("MPI_Init");  // End MPI_Init
-
-    std::string input_type = "";
-    if (taskid == MASTER) {
-        array.resize(sizeOfArray);
-
+// Function to generate an array based on user input
+void generate_array(int* subarray, int sizeOfArray, int array_type) {
+    srand(static_cast<unsigned int>(time(0))); // Seed random number generator
+    for (int i = 0; i < sizeOfArray; i++) {
         switch (array_type) {
             case 1:
                 // Generate random array
-                for (int i = 0; i < sizeOfArray; i++) {
-                    array[i] = rand() % 1000;
-                }
-                input_type = "Random";
+                subarray[i] = rand() % 1000;
                 break;
             case 2:
                 // Generate sorted array
-                for (int i = 0; i < sizeOfArray; i++) {
-                    array[i] = i;
-                }
-                input_type = "Sorted";
+                subarray[i] = i; // global_index is i here
                 break;
             case 3:
                 // Generate reverse sorted array
-                for (int i = 0; i < sizeOfArray; i++) {
-                    array[i] = sizeOfArray - i;
-                }
-                input_type = "Reverse Sorted";
+                subarray[i] = sizeOfArray - i - 1; // global_index is i here
                 break;
             case 4:
                 // Generate 1% perturbed array
-                for (int i = 0; i < sizeOfArray; i++) {
-                    array[i] = i;
+                subarray[i] = i; // Initially sorted
+                if (rand() % 100 == 0) { // 1% chance to swap
+                    int idx_to_swap = rand() % sizeOfArray;
+                    std::swap(subarray[i], subarray[idx_to_swap]);
                 }
-                // Swap 1% of elements
-                for (int i = 0; i < sizeOfArray / 100; i++) {
-                    int idx1 = rand() % sizeOfArray;
-                    int idx2 = rand() % sizeOfArray;
-                    std::swap(array[idx1], array[idx2]);
-                }
-                input_type = "1% Perturbed";
                 break;
             default:
-                std::cout << "Invalid array type. Please use 1 for random, 2 for sorted, 3 for reverse sorted, or 4 for 1% perturbed." << std::endl;
-                return 1;
+                std::cerr << "Invalid array type. Please use 1 for random, 2 for sorted, "
+                          << "3 for reverse sorted, or 4 for 1% perturbed." << std::endl;
+                exit(1); // Exit if invalid type
         }
-        
-        std::cout << "Generated " << input_type << " array of size " << sizeOfArray << std::endl;
     }
+}
 
-
-    // Start Adiak and register metadata
-    adiak::init(nullptr);
-    adiak::launchdate();    // launch date of the job
-    adiak::libraries();     // Libraries used
-    adiak::cmdline();  // Command line used to launch the job
-    adiak::clustername();   // Name of the cluster
-
-    // Algorithm-specific metadata
-    std::string algorithm = "merge";
-    std::string programming_model = "mpi";
-    std::string data_type = "int";
-    int size_of_data_type = sizeof(int);
-    std::string scalability = "strong";  
-    int group_number = 5;  
-    std::string implementation_source = "handwritten";  
-
-    adiak::value("algorithm", algorithm);
-    adiak::value("programming_model", programming_model);
-    adiak::value("data_type", data_type);
-    adiak::value("size_of_data_type", size_of_data_type);
-    adiak::value("input_size", sizeOfArray);
-    adiak::value("input_type", input_type);
-    adiak::value("num_procs", numtasks);
-    adiak::value("scalability", scalability);
-    adiak::value("group_num", group_number);
-    adiak::value("implementation_source", implementation_source);
-
-
-    CALI_MARK_BEGIN("MPI_Comm_dup");  // Begin MPI_Comm_dup
-    MPI_Comm comm_dup;
-    MPI_Comm_dup(MPI_COMM_WORLD, &comm_dup);
-    CALI_MARK_END("MPI_Comm_dup");  // End MPI_Comm_dup
-
-    // Calculate chunk size and extra elements
-    int chunk_size = sizeOfArray / numtasks;
-    int remainder = sizeOfArray % numtasks;
-
-    // Resize subarray to receive its portion of data
-    int subarray_size;
+// Parallel merge sort function
+void parallel_merge_sort(int* A, int N, int rank, int size) {
+    // Allocate space for the local array
+    std::vector<int> local_array(A, A + N);
     
-    if (taskid < remainder)
-    {
-      subarray_size = chunk_size + 1;
-    }
-    else
-    {
-      subarray_size = chunk_size;
-    }
-    
-    subarray.resize(subarray_size);
+    // Each process sorts its own sub-array
+    CALI_MARK_BEGIN("comp_small"); // Start of the computation region
+    local_array = merge_sort(local_array);
+    CALI_MARK_END("comp_small"); // End of the computation region
 
-    // Data initialization runtime (assuming data initialization code here)
-    CALI_MARK_BEGIN("data_init_runtime");
-
-    if (taskid == MASTER) {
-        array.resize(sizeOfArray);
-        for (int i = 0; i < sizeOfArray; i++) {
-            array[i] = rand() % 1000;  // Random initialization of array
-        }
-    }
-    CALI_MARK_END("data_init_runtime");  // End data_init_runtime
-
-    // Barrier to synchronize
-    CALI_MARK_BEGIN("comm");
-    MPI_Barrier(MPI_COMM_WORLD);
-    CALI_MARK_END("comm");
-
-    // Prepare data for scattering: send counts and displacements
-    std::vector<int> send_counts(numtasks);
-    std::vector<int> displacements(numtasks);
-    int offset = 0;
-
-    for (int i = 0; i < numtasks; i++) {
-        if (i < remainder)
-        {
-          send_counts[i] = chunk_size + 1;
-        }
-        else    
-        {
-          send_counts[i] = chunk_size;
-        }
-        
-        displacements[i] = offset;
-        offset += send_counts[i];
-    }
-
-    // Scatter data to workers with varying counts
-    CALI_MARK_BEGIN("comm_large");
-    MPI_Scatterv(array.data(), send_counts.data(), displacements.data(), MPI_INT, subarray.data(), subarray.size(), MPI_INT, MASTER, MPI_COMM_WORLD);
-    CALI_MARK_END("comm_large");
-
-    // Computation section
-    CALI_MARK_BEGIN("comp");
-    subarray = merge_sort(subarray);
-    CALI_MARK_END("comp");
-
-    // Prepare receive counts and displacements for gathering
-    std::vector<int> recv_counts(numtasks);
-    std::vector<int> recv_displacements(numtasks);
-    offset = 0;
-    for (int i = 0; i < numtasks; i++) {
-        recv_counts[i] = send_counts[i]; // Same as the send counts
-        recv_displacements[i] = displacements[i];
-    }
-    
-    // Resize the gathered array on the MASTER process before gathering data
-    if (taskid == MASTER) {
-        array.resize(sizeOfArray);
-    }
-
-    // Gather sorted data back to master
-    CALI_MARK_BEGIN("comp_large");
-    MPI_Gatherv(subarray.data(), subarray.size(), MPI_INT, array.data(), recv_counts.data(), recv_displacements.data(), MPI_INT, MASTER, MPI_COMM_WORLD);
-    CALI_MARK_END("comp_large");
-
-    // Check correctness
-    CALI_MARK_BEGIN("correctness_check");
-    if (taskid == MASTER) {
-        // The master process needs to merge the sorted subarrays into a single sorted array
-        std::vector<int> sorted_array;
-
-        // Merge the sorted subarrays back into the final sorted array
-        for (int i = 0; i < numtasks; ++i) {
-            // Extract the subarray that belongs to this task
-            std::vector<int> current_subarray(array.begin() + recv_displacements[i], 
-                                               array.begin() + recv_displacements[i] + recv_counts[i]);
-            
-            // Merge current subarray into the sorted_array
-            sorted_array = merge(sorted_array, current_subarray);
-        }
-
-        // Now sorted_array contains the fully sorted array
-        array = sorted_array;
-        
-        if (is_sorted(array)) {
-            std::cout << "Array is sorted correctly." << std::endl;
+    // Merging step using iterative merging (recursive doubling)
+    int step = 1; // Start with a step size of 1 for merging
+    while (step < size) {
+        if (rank % (2 * step) == 0) { // Even-ranked process
+            if (rank + step < size) {
+                int received_size = N / size; // Size of the received array
+                std::vector<int> received_array(received_size);
+                CALI_MARK_BEGIN("comm_large"); // Start of large communication region
+                MPI_Recv(received_array.data(), received_size, MPI_INT, rank + step, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                CALI_MARK_END("comm_large"); // End of large communication region
+                local_array = merge(local_array, received_array);
+            }
         } else {
-            std::cout << "Array is NOT sorted correctly." << std::endl;
+            CALI_MARK_BEGIN("comm_small"); // Start of small communication region
+            MPI_Send(local_array.data(), N / size, MPI_INT, rank - step, 0, MPI_COMM_WORLD);
+            CALI_MARK_END("comm_small"); // End of small communication region
+            break; // Exit the loop after sending the data
+        }
+        step *= 2; // Double the step size for the next iteration
+    }
+}
+
+int main(int argc, char** argv) {
+    MPI_Init(&argc, &argv);
+    
+    // Mark the function entry for Caliper
+    CALI_CXX_MARK_FUNCTION;
+
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    // Input: Specify the total number of elements and array type
+    int N = 100; // Total number of elements, can be replaced by actual input
+    int array_type = 0; // 1 for random, 2 for sorted, 3 for reverse sorted, 4 for 1% perturbed
+
+    if (rank == 0) {
+        std::cout << "Enter the array type (1: Random, 2: Sorted, 3: Reverse Sorted, 4: 1% Perturbed): ";
+        std::cin >> array_type;
+
+        // Validate input
+        if (array_type < 1 || array_type > 4) {
+            std::cerr << "Invalid input! Please enter a value between 1 and 4." << std::endl;
+            MPI_Abort(MPI_COMM_WORLD, 1);
         }
     }
-    CALI_MARK_END("correctness_check");
 
-    // Finalize MPI and Adiak
-    CALI_MARK_BEGIN("MPI_Finalize");
-    adiak::fini();
-    MPI_Finalize();
-    CALI_MARK_END("MPI_Finalize");
+    // Broadcast the selected array type to all processes
+    MPI_Bcast(&array_type, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
+    // Initialize data
+    int* A = nullptr;
+
+    if (rank == 0) {
+        CALI_MARK_BEGIN("data_init"); // Start data initialization region
+        A = new int[N];
+        generate_array(A, N, array_type); // Generate the array based on user input
+        CALI_MARK_END("data_init"); // End data initialization region
+    }
+
+    // Broadcast the size of the array to all processes
+    MPI_Bcast(&N, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+    // Calculate sub-array size and allocate space for local sub-array
+    int sub_array_size = N / size;
+    int* local_array = new int[sub_array_size];
+
+    // Communication - distribute the array
+    if (rank == 0) {
+        for (int i = 1; i < size; i++) {
+            CALI_MARK_BEGIN("comm_large"); // Start of large communication region
+            MPI_Send(A + i * sub_array_size, sub_array_size, MPI_INT, i, 0, MPI_COMM_WORLD);
+            CALI_MARK_END("comm_large"); // End of large communication region
+        }
+        std::copy(A, A + sub_array_size, local_array);
+    } else {
+        CALI_MARK_BEGIN("comm_small"); // Start of small communication region
+        MPI_Recv(local_array, sub_array_size, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        CALI_MARK_END("comm_small"); // End of small communication region
+    }
+
+    // Call the parallel merge sort function
+    parallel_merge_sort(local_array, sub_array_size, rank, size);
+
+    // Communication - gather the sorted arrays (final merge)
+    if (rank == 0) {
+        std::vector<int> sorted_array(N);
+        std::copy(local_array, local_array + sub_array_size, sorted_array.begin());
+
+        for (int i = 1; i < size; i++) {
+            CALI_MARK_BEGIN("comm_large"); // Start of large communication region
+            MPI_Recv(sorted_array.data() + i * sub_array_size, sub_array_size, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            CALI_MARK_END("comm_large"); // End of large communication region
+        }
+
+        // Final merge on the root process (optional, depending on your setup)
+        // sorted_array = merge_sort(sorted_array); // Uncomment if a final merge is needed
+        
+        // Check correctness
+        CALI_MARK_BEGIN("correctness_check"); // Start correctness check region
+        if (is_sorted(sorted_array)) {
+            std::cout << "Array is sorted." << std::endl;
+        } else {
+            std::cout << "Array is NOT sorted." << std::endl;
+        }
+        CALI_MARK_END("correctness_check"); // End correctness check region
+
+        // Cleanup
+        delete[] A; // Free allocated memory
+    }
+
+    delete[] local_array; // Free local array memory
+
+    MPI_Finalize(); // Finalize MPI
     return 0;
 }
