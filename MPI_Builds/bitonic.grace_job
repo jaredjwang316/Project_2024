@@ -19,12 +19,13 @@
 #
 array_size=$1
 processes=$2
+data_init_method=$3
 
 module load intel/2020b       # load Intel software stack
 module load CMake/3.12.1
 module load GCCcore/8.3.0
 module load PAPI/6.0.0            # Load PAPI (adjust version as needed)
 
-CALI_CONFIG="spot(output=bitonic-p${processes}-a${array_size}.cali, \
+CALI_CONFIG="spot(output=bitonic-p${processes}-a${array_size}-t${data_init_method}.cali, \
     time.variance,profile.mpi)" \
-mpirun -np $processes ./bitonicsort $array_size
+mpirun -np $processes ./bitonicsort $array_size $data_init_method

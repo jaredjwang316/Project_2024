@@ -49,12 +49,14 @@ int main(int argc, char** argv) {
     CALI_CXX_MARK_FUNCTION;
 
     int global_size, sub_arr_size, rank, n_procs, mtype;
+    std::string data_init_method;
 
-    if (argc == 2) {
+    if (argc == 3) {
         global_size = atoi(argv[1]);
+        data_init_method = std::string(argv[2]);
     } else {
         std::cout << "\n Received " << argc << " arguments" << std::endl;
-        std::cout << "\n Usage: ./bitonic_sort <array_size>" << std::endl;
+        std::cout << "\n Usage: ./bitonic_sort <array_size> <data_init_method>" << std::endl;
         return 0;
     }
     
@@ -97,13 +99,21 @@ int main(int argc, char** argv) {
     CALI_MARK_BEGIN("data_init_runtime");
     std::vector<int> local_arr(global_size);
     sub_arr_size = global_size / n_procs;
-    initialize_random(local_arr, sub_arr_size, rank);
+    if (data_init_method == "sorted") {
+        initialize_sorted(local_arr, sub_arr_size, rank);
+    } else if (data_init_method == "reverse") {
+        initialize_reverse(local_arr, sub_arr_size, rank, n_procs);
+    } else if (data_init_method == "perturbed") {
+        initialize_perturbed(local_arr, sub_arr_size, rank, 0.01f);
+    } else { // default to random initialization
+        initialize_random(local_arr, sub_arr_size, rank);
+    }
     CALI_MARK_END("data_init_runtime");
 
     // bitonically sort local distributed arrays (ascending if rank is even)
     CALI_MARK_BEGIN("comp");
         CALI_MARK_BEGIN("comp_large");
-        local_bitonic_sort(local_arr, 0, local_arr.size(), rank % 2 == 0);
+            local_bitonic_sort(local_arr, 0, local_arr.size(), rank % 2 == 0);
         CALI_MARK_END("comp_large");
     CALI_MARK_END("comp");
 
