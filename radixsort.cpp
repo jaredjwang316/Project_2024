@@ -5,15 +5,95 @@
 #include <caliper/cali-manager.h>
 #include <adiak.hpp>
 #include <random>
+#include <algorithm>
 
 #define MASTER 0
-#define MAX_VAL 1000
 
-std::vector<int> getCount(const std::vector<int> &arr, int offset, int chunkSize, int max)
+enum InputType
+{
+    RANDOM,
+    SORTED,
+    REVERSE_SORTED,
+    PERTURBED
+};
+
+std::vector<int> generateData(int chunkSize, InputType inputType, int rank, int totalSize)
+{
+    std::vector<int> chunk;
+    chunk.resize(chunkSize);
+
+    long startIdx = rank * chunkSize;
+
+    switch (inputType)
+    {
+    case RANDOM:
+    {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(0, totalSize);
+        for (int i = 0; i < chunkSize; i++)
+        {
+            chunk[i] = dis(gen);
+        }
+        break;
+    }
+    case SORTED:
+    {
+        for (int i = 0; i < chunkSize; i++)
+        {
+            chunk[i] = startIdx + i;
+        }
+        break;
+    }
+    case REVERSE_SORTED:
+    {
+        for (int i = 0; i < chunkSize; i++)
+        {
+            chunk[i] = totalSize - (startIdx + i) - 1;
+        }
+        break;
+    }
+    case PERTURBED:
+    {
+        for (int i = 0; i < chunkSize; i++)
+        {
+            chunk[i] = startIdx + i;
+        }
+
+        int perturbCount = std::max(1, chunkSize / 100);
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dis(0, chunkSize - 1);
+        for (int i = 0; i < perturbCount; i++)
+        {
+            int idx1 = dis(gen);
+            int idx2 = dis(gen);
+            std::swap(chunk[idx1], chunk[idx2]);
+        }
+        break;
+    }
+    }
+
+    /*
+
+    // Print Out Chunks
+    std::cout << "Chunk " << rank << ": ";
+    for (int i = 0; i < chunkSize; i++)
+    {
+        std::cout << chunk[i] << " ";
+    }
+    std::cout << std::endl;
+
+    */
+
+    return chunk;
+}
+
+std::vector<int> getCount(const std::vector<int> &arr, int chunkSize, int max)
 {
     std::vector<int> counts(max + 1, 0);
 
-    for (int i = offset; i < std::min(offset + chunkSize, static_cast<int>(arr.size())); i++)
+    for (int i = 0; i < chunkSize; i++)
     {
         counts[arr[i]]++;
     }
@@ -51,8 +131,9 @@ int main(int argc, char *argv[])
     CALI_CXX_MARK_FUNCTION;
 
     int arrSize;
+    InputType inputType = RANDOM;
 
-    if (argc == 2)
+    if (argc >= 2)
     {
         arrSize = atoi(argv[1]);
     }
@@ -62,8 +143,28 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    if (argc == 3)
+    {
+        std::string inputTypeStr = argv[2];
+        if (inputTypeStr == "sorted")
+        {
+            inputType = SORTED;
+        }
+        else if (inputTypeStr == "reverse")
+        {
+            inputType = REVERSE_SORTED;
+        }
+        else if (inputTypeStr == "perturbed")
+        {
+            inputType = PERTURBED;
+        }
+        else
+        {
+            inputType = RANDOM;
+        }
+    }
+
     int size, rank;
-    std::vector<int> array;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -81,7 +182,9 @@ int main(int argc, char *argv[])
     adiak::value("data_type", std::string("int"));
     adiak::value("size_of_data_type", sizeof(int));
     adiak::value("input_size", arrSize);
-    adiak::value("input_type", std::string("Random"));
+    adiak::value("input_type", std::string((inputType == SORTED ? "Sorted" : inputType == REVERSE_SORTED ? "Reverse Sorted"
+                                                                         : inputType == PERTURBED        ? "1% Perturbed"
+                                                                                                         : "Random")));
     adiak::value("num_procs", size);
     adiak::value("scalability", std::string("strong"));
     adiak::value("group_num", 5);
@@ -92,55 +195,23 @@ int main(int argc, char *argv[])
 
     // Data initialization
     CALI_MARK_BEGIN("data_init_runtime");
-    if (rank == MASTER)
-    {
-        array.resize(arrSize);
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dis(0, MAX_VAL);
-        for (int i = 0; i < arrSize; i++)
-        {
-            array[i] = dis(gen);
-        }
-    }
+    int chunkSize = (arrSize + size - 1) / size;
+    std::vector<int> localChunk = generateData(chunkSize, inputType, rank, arrSize);
     CALI_MARK_END("data_init_runtime");
 
-    CALI_MARK_BEGIN("comm");
-    CALI_MARK_BEGIN("comm_small");
-    MPI_Barrier(MPI_COMM_WORLD);
-    CALI_MARK_END("comm_small");
-
-    // Calculate chunk size
-    int chunkSize = (arrSize + size - 1) / size;
-    std::vector<int> localCounts(MAX_VAL + 1, 0);
-    std::vector<int> globalCounts(MAX_VAL + 1, 0);
-
-    // Broadcast the array to all processes
-    CALI_MARK_BEGIN("comm_large");
-    if (rank == MASTER)
-    {
-        MPI_Bcast(array.data(), arrSize, MPI_INT, MASTER, MPI_COMM_WORLD);
-    }
-    else
-    {
-        array.resize(arrSize);
-        MPI_Bcast(array.data(), arrSize, MPI_INT, MASTER, MPI_COMM_WORLD);
-    }
-    CALI_MARK_END("comm_large");
-    CALI_MARK_END("comm");
-
-    // Local counting
+    // Local counting & prefix sum
     CALI_MARK_BEGIN("comp");
     CALI_MARK_BEGIN("comp_large");
-    int startIdx = rank * chunkSize;
-    localCounts = getCount(array, startIdx, chunkSize, MAX_VAL);
+    std::vector<int> localCounts = getCount(localChunk, chunkSize, arrSize);
+    std::vector<int> localPrefixSum = prefixSum(localCounts);
     CALI_MARK_END("comp_large");
     CALI_MARK_END("comp");
 
-    // Combine counts
+    // Combine prefix sums
     CALI_MARK_BEGIN("comm");
     CALI_MARK_BEGIN("comm_large");
-    MPI_Reduce(localCounts.data(), globalCounts.data(), MAX_VAL + 1, MPI_INT, MPI_SUM, MASTER, MPI_COMM_WORLD);
+    std::vector<int> globalPrefixSum(arrSize + 1, 0);
+    MPI_Reduce(localPrefixSum.data(), globalPrefixSum.data(), arrSize + 1, MPI_INT, MPI_SUM, MASTER, MPI_COMM_WORLD);
     CALI_MARK_END("comm_large");
     CALI_MARK_END("comm");
 
@@ -148,28 +219,25 @@ int main(int argc, char *argv[])
     if (rank == MASTER)
     {
         CALI_MARK_BEGIN("comp");
-        CALI_MARK_BEGIN("comp_small");
-        std::vector<int> prefixSums = prefixSum(globalCounts);
-        std::vector<int> result(arrSize);
+        CALI_MARK_BEGIN("comp_large");
 
-        // Build sorted array
-        for (int i = 0; i < arrSize; i++)
+        std::vector<int> result(arrSize);
+        int position = 0;
+
+        for (int value = 0; value <= arrSize; value++)
         {
-            int value = array[i];
-            result[prefixSums[value]] = value;
-            prefixSums[value]++;
+            int start = globalPrefixSum[value];
+            int end = (value == arrSize) ? arrSize : globalPrefixSum[value + 1];
+
+            for (int i = start; i < end; i++)
+            {
+                result[i] = value;
+            }
         }
-        CALI_MARK_END("comp_small");
+        CALI_MARK_END("comp_large");
+        CALI_MARK_END("comp");
 
         /*
-
-        // Print Out Input
-        std::cout << "Input: ";
-        for (int i = 0; i < arrSize; i++)
-        {
-            std::cout << array[i] << " ";
-        }
-        std::cout << std::endl;
 
         // Print Out Result
         std::cout << "Result: ";
@@ -180,7 +248,6 @@ int main(int argc, char *argv[])
         std::cout << std::endl;
 
         */
-        CALI_MARK_END("comp");
 
         // Check correctness
         CALI_MARK_BEGIN("correctness_check");
