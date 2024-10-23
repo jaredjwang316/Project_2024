@@ -699,6 +699,14 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
     - Total time
     - Variance time/rank
 
+#### Bitonic Sort Plots:
+
+![Bitonic Sort: Number of Processors vs. Avg Time / Rank](plots/bitonic_processors_vs_avg_time_rank.png)
+![Bitonic Sort: Number of Processors vs. Min Time / Rank](plots/bitonic_processors_vs_min_time_rank.png)
+![Bitonic Sort: Number of Processors vs. Max Time / Rank](plots/bitonic_processors_vs_max_time_rank.png)
+![Bitonic Sort: Number of Processors vs. Total Time](plots/bitonic_processors_vs_total_time.png)
+![Bitonic Sort: Number of Processors vs. Variance Time / Rank](plots/bitonic_processors_vs_variance_time_rank.png)
+As we can see, the average execution time per rank seems to be increasing as we scale up the number of processors. This creates an unscalable exponential trend in total performance as a function of the number of processes. This is due to a bug in implementation where each process sorts a larger window of the locally generated array than is necessary. This issue has been addressed and fixed in the source code. The updated graphs will be produced and generated soon to reflect these improvements. The result should hopefully show the inverse of this trend, improving performance as we scale up to more processors.
 
 ## 5. Presentation
 Plots for the presentation should be as follows:
