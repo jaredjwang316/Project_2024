@@ -11,30 +11,37 @@
 // Function to merge two sorted arrays
 std::vector<int> merge(const std::vector<int>& left, const std::vector<int>& right) {
     size_t total_size = left.size() + right.size();
-    std::vector<int> merged;
-    merged.resize(total_size); // Preallocate memory
+    std::vector<int> merged(total_size);  // Preallocate memory
 
     size_t i = 0, j = 0, k = 0;
 
     // Merge elements from both halves
     while (i < left.size() && j < right.size()) {
         if (left[i] < right[j]) {
-            merged[k++] = left[i++];
+            merged[k] = left[i];
+            i++;
         } else {
-            merged[k++] = right[j++];
+            merged[k] = right[j];
+            j++;
         }
+        k++;
     }
 
     // Append any remaining elements from left or right
     while (i < left.size()) {
-        merged[k++] = left[i++];
+        merged[k] = left[i];
+        i++;
+        k++;
     }
     while (j < right.size()) {
-        merged[k++] = right[j++];
+        merged[k] = right[j];
+        j++;
+        k++;
     }
 
     return merged;
 }
+
 
 // Custom merge sort implementation
 std::vector<int> merge_sort(std::vector<int>& arr) {
