@@ -65,6 +65,10 @@ int main(int argc, char** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &n_procs);
     MPI_Status status;
 
+    if (rank == MASTER) {
+        std::cout << "Bitonic sort: arr_len=" << global_size << ", n_procs=" << n_procs << ", input_type=" << data_init_method << std::endl;
+    }
+
     // Start Adiak and register metadata
     adiak::init(nullptr);
     adiak::launchdate();    // launch date of the job
@@ -77,7 +81,6 @@ int main(int argc, char** argv) {
     std::string programming_model = "mpi";
     std::string data_type = "int";
     int size_of_data_type = sizeof(int);
-    std::string input_type = "Random";
     std::string scalability = "strong";  
     int group_number = 5;  
     std::string implementation_source = "handwritten";  
@@ -87,7 +90,7 @@ int main(int argc, char** argv) {
     adiak::value("data_type", data_type);
     adiak::value("size_of_data_type", size_of_data_type);
     adiak::value("input_size", global_size);
-    adiak::value("input_type", input_type);
+    adiak::value("input_type", data_init_method);
     adiak::value("num_procs", n_procs);
     adiak::value("scalability", scalability);
     adiak::value("group_num", group_number);
@@ -113,7 +116,7 @@ int main(int argc, char** argv) {
     // bitonically sort local distributed arrays (ascending if rank is even)
     CALI_MARK_BEGIN("comp");
         CALI_MARK_BEGIN("comp_large");
-            local_bitonic_sort(local_arr, 0, local_arr.size(), rank % 2 == 0);
+            local_bitonic_sort(local_arr, 0, sub_arr_size, rank % 2 == 0);
         CALI_MARK_END("comp_large");
     CALI_MARK_END("comp");
 
