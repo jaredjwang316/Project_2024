@@ -3,7 +3,7 @@ import sys
 def generate_grace_job(algo, array_size, processes, data_init_method):
     nodes = max(1, processes // 32)
     procs_per_node = processes // nodes
-    mem = 128
+    mem = 32
 
     job_name = f'{algo}-p{processes}-a{array_size}-t{data_init_method}'
     output_name = f'out/{algo}-p{processes}-a{array_size}-t{data_init_method}.out'
@@ -15,7 +15,7 @@ def generate_grace_job(algo, array_size, processes, data_init_method):
 #
 ##NECESSARY JOB SPECIFICATIONS
 #SBATCH --job-name={job_name}       #Set the job name to "JobName"
-#SBATCH --time=02:30:00           #Set the wall clock limit
+#SBATCH --time=00:10:00           #Set the wall clock limit
 #SBATCH --nodes={nodes}               #Request nodes
 #SBATCH --ntasks-per-node={procs_per_node}    # Request tasks/cores per node
 #SBATCH --mem={mem}G                 #Request GB per node 
