@@ -53,7 +53,7 @@ def generate_grace_batch_job(algo, processes, array_sizes, data_init_methods):
 #
 ##NECESSARY JOB SPECIFICATIONS
 #SBATCH --job-name={job_name}       #Set the job name to "JobName"
-#SBATCH --time=02:30:00           #Set the wall clock limit
+#SBATCH --time=00:10:00           #Set the wall clock limit
 #SBATCH --nodes={nodes}               #Request nodes
 #SBATCH --ntasks-per-node={procs_per_node}    # Request tasks/cores per node
 #SBATCH --mem={mem}G                 #Request GB per node 
@@ -86,17 +86,19 @@ if __name__ == '__main__':
     input_types = ['random', 'sorted', 'reverse', 'perturbed']
     processes = [int(2 ** exp) for exp in range(1, 11)]
 
-    # for array_size in array_sizes:
-    #     for process in processes:
-    #         for input_type in input_types:
-    #             job_name = f'{algo}-p{process}-a{array_size}-t{input_type}'
-    #             print('Generating', job_name)
-    #             grace_job = generate_grace_job(algo, array_size, process, input_type)
-    #             with open(f'jobs/{job_name}.grace_job', 'w') as out:
-    #                 out.write(grace_job)
-    for process in processes:
-        job_name = f'{algo}-p{process}-all'
-        print('Generating', job_name)
-        grace_job = generate_grace_batch_job(algo, process, array_sizes, input_types)
-        with open(f'jobs/{job_name}.grace_job', 'w') as out:
-            out.write(grace_job)
+    if '--batch' in sys.argv:
+        for process in processes:
+            job_name = f'{algo}-p{process}-all'
+            print('Generating', job_name)
+            grace_job = generate_grace_batch_job(algo, process, array_sizes, input_types)
+            with open(f'jobs/{job_name}.grace_job', 'w') as out:
+                out.write(grace_job)
+    else:
+        for array_size in array_sizes:
+            for process in processes:
+                for input_type in input_types:
+                    job_name = f'{algo}-p{process}-a{array_size}-t{input_type}'
+                    print('Generating', job_name)
+                    grace_job = generate_grace_job(algo, array_size, process, input_type)
+                    with open(f'jobs/{job_name}.grace_job', 'w') as out:
+                        out.write(grace_job)
