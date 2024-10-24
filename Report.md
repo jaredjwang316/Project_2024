@@ -730,6 +730,17 @@ Generally speaking, we can see that the computation time of radix sort follows a
 
 When looking at the total time, we can clearly see that there is a extreme positive linear relationship between the total time and number of processors for every input size. This indicates a weak scaling algorithm because as you add more processors and increase the problem size proportionally, the computation time should ideally remain stable or increase only slightly due to communication overhead.
 
+#### Merge Sort Plots:
+![merge Sort: Number of Processors vs. Time / Rank (Input Size=65536)](plots/merge/merge_performance_rank_a65536.png)
+![merge Sort: Number of Processors vs. Time / Rank (Input Size=262144)](plots/merge/merge_performance_rank_a262144.png)
+![merge Sort: Number of Processors vs. Time / Rank (Input Size=1048576)](plots/merge/merge_performance_rank_a1048576.png)
+![merge Sort: Number of Processors vs. Time / Rank (Input Size=4194304)](plots/merge/merge_performance_rank_a4194304.png)
+![merge Sort: Number of Processors vs. Time / Rank (Input Size=16777216)](plots/merge/merge_performance_rank_a16777216.png)
+![merge Sort: Number of Processors vs. Time / Rank (Input Size=67108864)](plots/merge/merge_performance_rank_a67108864.png)
+![merge Sort: Number of Processors vs. Time / Rank (Input Size=268435456)](plots/merge/merge_performance_rank_a268435456.png)
+
+As the number of processes increases, the computational time decreases exponentially with respect to the number of processors.  Conceptually, this makes sense because merge sort is a divide-and-conquer sorting algorithm.  When there are more processors and the computational workload is distributed evenly, individual processors will do less computational work.
+
 ## 5. Presentation
 Plots for the presentation should be as follows:
 - For each implementation:
