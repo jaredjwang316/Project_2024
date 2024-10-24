@@ -715,6 +715,21 @@ Another good indication is that the variance in computational time between proce
 
 Overall, the scalability of this approach is definitely quite strong as we ramp up the number of processors and exponentiate our input size, but there is definitely still room for improvement on cutting down communication costs and complexities.
 
+---
+
+#### Radix Sort Plots:
+![radix Sort: Number of Processors vs. Time / Rank (Input Size=65536)](plots/radix/radix_performance_rank_a65536.png)
+![radix Sort: Number of Processors vs. Time / Rank (Input Size=262144)](plots/radix/radix_performance_rank_a262144.png)
+![radix Sort: Number of Processors vs. Time / Rank (Input Size=1048576)](plots/radix/radix_performance_rank_a1048576.png)
+![radix Sort: Number of Processors vs. Time / Rank (Input Size=4194304)](plots/radix/radix_performance_rank_a4194304.png)
+![radix Sort: Number of Processors vs. Time / Rank (Input Size=16777216)](plots/radix/radix_performance_rank_a16777216.png)
+![radix Sort: Number of Processors vs. Time / Rank (Input Size=67108864)](plots/radix/radix_performance_rank_a67108864.png)
+![radix Sort: Number of Processors vs. Time / Rank (Input Size=268435456)](plots/radix/radix_performance_rank_a268435456.png)
+
+Generally speaking, we can see that the computation time of radix sort follows a negative exponential trend as the number of processors increase. However, the time difference between the varying number of processors are not as significant as others, nor is the trendline. This is because radix sort is more of a counting sort, performing linearly rather than logarithmically. Still, the trend follows this negative exponential curve since the increasing number of processors allow for smaller chunk sizes for each processor.
+
+When looking at the total time, we can clearly see that there is a extreme positive linear relationship between the total time and number of processors for every input size. This indicates a weak scaling algorithm because as you add more processors and increase the problem size proportionally, the computation time should ideally remain stable or increase only slightly due to communication overhead.
+
 ## 5. Presentation
 Plots for the presentation should be as follows:
 - For each implementation:
