@@ -749,6 +749,9 @@ As the number of processes increases, the computational time decreases exponenti
 ![sample Sort: Number of Processors vs. Time / Rank (Input Size=16777216)](plots/sample/sample_performance_rank_a16777216.png)
 ![sample Sort: Number of Processors vs. Time / Rank (Input Size=67108864)](plots/sample/sample_performance_rank_a67108864.png)
 ![sample Sort: Number of Processors vs. Time / Rank (Input Size=268435456)](plots/sample/sample_performance_rank_a268435456.png)
+
+The algorithm still times out and takes much longer than expected for large numbers of processes and/or sorted or perturbed input values. This along with some network issues and other possibly related errors caused a lot of jobs to not run and the data to look unexpected. On the other hand, some plots look sort of reasonable such as the plot for 2^16 for perturbed and sorted. These feature an exponentially decreasing function which seems reasonable. These unexpected trends will hopefully be fixed with a new revision of the sample sort implementation.
+
 ## 5. Presentation
 Plots for the presentation should be as follows:
 - For each implementation:
