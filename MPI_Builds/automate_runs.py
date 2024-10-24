@@ -3,7 +3,11 @@ import sys
 def generate_grace_job(algo, array_size, processes, data_init_method):
     nodes = max(1, processes // 32)
     procs_per_node = processes // nodes
-    mem = 32
+
+    if array_size * procs_per_node * 4 > 30e9:
+        mem = 42
+    else:
+        mem = 32
 
     job_name = f'{algo}-p{processes}-a{array_size}-t{data_init_method}'
     output_name = f'out/{algo}-p{processes}-a{array_size}-t{data_init_method}.out'

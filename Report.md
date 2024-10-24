@@ -700,13 +700,35 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
     - Variance time/rank
 
 #### Bitonic Sort Plots:
+![Bitonic Sort: Number of Processors vs. Time / Rank (Input Size=65536)](plots/bitonic/bitonic_performance_rank_a65536.png)
+![Bitonic Sort: Number of Processors vs. Time / Rank (Input Size=262144)](plots/bitonic/bitonic_performance_rank_a262144.png)
+![Bitonic Sort: Number of Processors vs. Time / Rank (Input Size=1048576)](plots/bitonic/bitonic_performance_rank_a1048576.png)
+![Bitonic Sort: Number of Processors vs. Time / Rank (Input Size=4194304)](plots/bitonic/bitonic_performance_rank_a4194304.png)
+![Bitonic Sort: Number of Processors vs. Time / Rank (Input Size=16777216)](plots/bitonic/bitonic_performance_rank_a16777216.png)
+![Bitonic Sort: Number of Processors vs. Time / Rank (Input Size=67108864)](plots/bitonic/bitonic_performance_rank_a67108864.png)
+![Bitonic Sort: Number of Processors vs. Time / Rank (Input Size=268435456)](plots/bitonic/bitonic_performance_rank_a268435456.png)
+As we can see from the plots, the computation time by rank scales down negative exponentially as expected when we scale up the number of processors. This is because the bitonic sort implementation recursively divides the computational load between processors such that each only has to manage an even subarray. 
 
-![Bitonic Sort: Number of Processors vs. Avg Time / Rank](plots/bitonic_processors_vs_avg_time_rank.png)
-![Bitonic Sort: Number of Processors vs. Min Time / Rank](plots/bitonic_processors_vs_min_time_rank.png)
-![Bitonic Sort: Number of Processors vs. Max Time / Rank](plots/bitonic_processors_vs_max_time_rank.png)
-![Bitonic Sort: Number of Processors vs. Total Time](plots/bitonic_processors_vs_total_time.png)
-![Bitonic Sort: Number of Processors vs. Variance Time / Rank](plots/bitonic_processors_vs_variance_time_rank.png)
-As we can see, the average execution time per rank seems to be increasing as we scale up the number of processors. This creates an unscalable exponential trend in total performance as a function of the number of processes. This is due to a bug in implementation where each process sorts a larger window of the locally generated array than is necessary. This issue has been addressed and fixed in the source code. The updated graphs will be produced and generated soon to reflect these improvements. The result should hopefully show the inverse of this trend, improving performance as we scale up to more processors.
+We also see that as we increase the input size, the exponential speedup by number of processes is maintained, while our total time does increase. This is expected as greater array sizes means increased computational costs per processor, additional memory allocation, and more data that needs to be communicated between processes. 
+
+Another good indication is that the variance in computational time between processes likewise displays an exponential decay as we ramp up the number of processors. This is good news as it indicates this approach is evenly distributing the workload among processors. The key factor in this is the parallel merging algorithm I implemented that utilizes partner processes to hierarchically merge the locally sorted subarrays, trickling up into the master process's final sorted array.
+
+Overall, the scalability of this approach is definitely quite strong as we ramp up the number of processors and exponentiate our input size, but there is definitely still room for improvement on cutting down communication costs and complexities.
+
+---
+
+#### Radix Sort Plots:
+![radix Sort: Number of Processors vs. Time / Rank (Input Size=65536)](plots/radix/radix_performance_rank_a65536.png)
+![radix Sort: Number of Processors vs. Time / Rank (Input Size=262144)](plots/radix/radix_performance_rank_a262144.png)
+![radix Sort: Number of Processors vs. Time / Rank (Input Size=1048576)](plots/radix/radix_performance_rank_a1048576.png)
+![radix Sort: Number of Processors vs. Time / Rank (Input Size=4194304)](plots/radix/radix_performance_rank_a4194304.png)
+![radix Sort: Number of Processors vs. Time / Rank (Input Size=16777216)](plots/radix/radix_performance_rank_a16777216.png)
+![radix Sort: Number of Processors vs. Time / Rank (Input Size=67108864)](plots/radix/radix_performance_rank_a67108864.png)
+![radix Sort: Number of Processors vs. Time / Rank (Input Size=268435456)](plots/radix/radix_performance_rank_a268435456.png)
+
+Generally speaking, we can see that the computation time of radix sort follows a negative exponential trend as the number of processors increase. However, the time difference between the varying number of processors are not as significant as others, nor is the trendline. This is because radix sort is more of a counting sort, performing linearly rather than logarithmically. Still, the trend follows this negative exponential curve since the increasing number of processors allow for smaller chunk sizes for each processor.
+
+When looking at the total time, we can clearly see that there is a extreme positive linear relationship between the total time and number of processors for every input size. This indicates a weak scaling algorithm because as you add more processors and increase the problem size proportionally, the computation time should ideally remain stable or increase only slightly due to communication overhead.
 
 ## 5. Presentation
 Plots for the presentation should be as follows:
