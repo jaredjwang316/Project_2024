@@ -700,13 +700,20 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
     - Variance time/rank
 
 #### Bitonic Sort Plots:
+![Bitonic Sort: Number of Processors vs. Time / Rank (Input Size=65536)](plots/bitonic/bitonic_performance_rank_a65536.png)
+![Bitonic Sort: Number of Processors vs. Time / Rank (Input Size=262144)](plots/bitonic/bitonic_performance_rank_a262144.png)
+![Bitonic Sort: Number of Processors vs. Time / Rank (Input Size=1048576)](plots/bitonic/bitonic_performance_rank_a1048576.png)
+![Bitonic Sort: Number of Processors vs. Time / Rank (Input Size=4194304)](plots/bitonic/bitonic_performance_rank_a4194304.png)
+![Bitonic Sort: Number of Processors vs. Time / Rank (Input Size=16777216)](plots/bitonic/bitonic_performance_rank_a16777216.png)
+![Bitonic Sort: Number of Processors vs. Time / Rank (Input Size=67108864)](plots/bitonic/bitonic_performance_rank_a67108864.png)
+![Bitonic Sort: Number of Processors vs. Time / Rank (Input Size=268435456)](plots/bitonic/bitonic_performance_rank_a268435456.png)
+As we can see from the plots, the computation time by rank scales down negative exponentially as expected when we scale up the number of processors. This is because the bitonic sort implementation recursively divides the computational load between processors such that each only has to manage an even subarray. 
 
-![Bitonic Sort: Number of Processors vs. Avg Time / Rank](plots/bitonic_processors_vs_avg_time_rank.png)
-![Bitonic Sort: Number of Processors vs. Min Time / Rank](plots/bitonic_processors_vs_min_time_rank.png)
-![Bitonic Sort: Number of Processors vs. Max Time / Rank](plots/bitonic_processors_vs_max_time_rank.png)
-![Bitonic Sort: Number of Processors vs. Total Time](plots/bitonic_processors_vs_total_time.png)
-![Bitonic Sort: Number of Processors vs. Variance Time / Rank](plots/bitonic_processors_vs_variance_time_rank.png)
-As we can see, the average execution time per rank seems to be increasing as we scale up the number of processors. This creates an unscalable exponential trend in total performance as a function of the number of processes. This is due to a bug in implementation where each process sorts a larger window of the locally generated array than is necessary. This issue has been addressed and fixed in the source code. The updated graphs will be produced and generated soon to reflect these improvements. The result should hopefully show the inverse of this trend, improving performance as we scale up to more processors.
+We also see that as we increase the input size, the exponential speedup by number of processes is maintained, while our total time does increase. This is expected as greater array sizes means increased computational costs per processor, additional memory allocation, and more data that needs to be communicated between processes. 
+
+Another good indication is that the variance in computational time between processes likewise displays an exponential decay as we ramp up the number of processors. This is good news as it indicates this approach is evenly distributing the workload among processors. The key factor in this is the parallel merging algorithm I implemented that utilizes partner processes to hierarchically merge the locally sorted subarrays, trickling up into the master process's final sorted array.
+
+Overall, the scalability of this approach is definitely quite strong as we ramp up the number of processors and exponentiate our input size, but there is definitely still room for improvement on cutting down communication costs and complexities.
 
 ## 5. Presentation
 Plots for the presentation should be as follows:
