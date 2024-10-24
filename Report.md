@@ -741,6 +741,14 @@ When looking at the total time, we can clearly see that there is a extreme posit
 
 As the number of processes increases, the computational time decreases exponentially with respect to the number of processors.  Conceptually, this makes sense because merge sort is a divide-and-conquer sorting algorithm.  When there are more processors and the computational workload is distributed evenly, individual processors will do less computational work.
 
+#### Sample Sort Plots:
+![sample Sort: Number of Processors vs. Time / Rank (Input Size=65536)](plots/sample/sample_performance_rank_a65536.png)
+![sample Sort: Number of Processors vs. Time / Rank (Input Size=262144)](plots/sample/sample_performance_rank_a262144.png)
+![sample Sort: Number of Processors vs. Time / Rank (Input Size=1048576)](plots/sample/sample_performance_rank_a1048576.png)
+![sample Sort: Number of Processors vs. Time / Rank (Input Size=4194304)](plots/sample/sample_performance_rank_a4194304.png)
+![sample Sort: Number of Processors vs. Time / Rank (Input Size=16777216)](plots/sample/sample_performance_rank_a16777216.png)
+![sample Sort: Number of Processors vs. Time / Rank (Input Size=67108864)](plots/sample/sample_performance_rank_a67108864.png)
+![sample Sort: Number of Processors vs. Time / Rank (Input Size=268435456)](plots/sample/sample_performance_rank_a268435456.png)
 ## 5. Presentation
 Plots for the presentation should be as follows:
 - For each implementation:
