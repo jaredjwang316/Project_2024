@@ -149,6 +149,12 @@ void parallel_merge_sort(int* A, int N, int rank, int size) {
         }
         step *= 2; // Double the step size for the next iteration
     }
+
+    // After merging, the root process has the fully sorted array in `local_array`
+    if (rank == 0) {
+        // Copy the sorted array back to A if necessary (assuming we want it in A at root)
+        std::copy(local_array.begin(), local_array.end(), A);
+    }
 }
 
 int main(int argc, char** argv) {
