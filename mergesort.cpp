@@ -189,17 +189,8 @@ void parallel_merge_sort(int* A, int N, int rank, int size) {
     // Step 6: Gather the sorted sub-arrays back to the root process
     if (rank == 0) {
         std::copy(local_array.begin(), local_array.end(), A);
-    } else {
-        // Send the local sorted array back to root
-        CALI_MARK_BEGIN("comm");
-            CALI_MARK_BEGIN("comm_large");
-                CALI_MARK_BEGIN("MPI_Gatherv");
-                    MPI_Gatherv(local_array.data(), local_array.size(), MPI_INT, nullptr, nullptr, nullptr, MPI_INT, 0, MPI_COMM_WORLD);
-                CALI_MARK_END("MPI_Gatherv");
-            CALI_MARK_END("comm_large");
-        CALI_MARK_END("comm");
-    }
-
+    } 
+    
     // Cleanup
     delete[] send_counts;
     delete[] displacements;
