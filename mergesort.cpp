@@ -4,9 +4,6 @@
 #include <cstdlib> // For rand()
 #include <ctime>   // For time()
 #include "mpi.h"
-#include <caliper/cali.h>
-#include <caliper/cali-manager.h>
-#include <adiak.hpp>
 
 // Function to merge two sorted arrays
 std::vector<int> merge(const std::vector<int>& left, const std::vector<int>& right) {
@@ -41,7 +38,6 @@ std::vector<int> merge(const std::vector<int>& left, const std::vector<int>& rig
 
     return merged;
 }
-
 
 // Custom merge sort implementation
 std::vector<int> merge_sort(std::vector<int>& arr) {
@@ -108,61 +104,68 @@ void generate_array(int* subarray, int sizeOfArray, int array_type) {
                 exit(1); // Exit if invalid type
         }
     }
-    adiak::value("input_type", input_type);
 }
 
 // Parallel merge sort function
 void parallel_merge_sort(int* A, int N, int rank, int size) {
-    // Allocate space for the local array
-    std::vector<int> local_array(A, A + N);
-    
-    // Each process sorts its own sub-array
-    CALI_MARK_BEGIN("comp_large"); // Start of computation region
-    local_array = merge_sort(local_array);
-    CALI_MARK_END("comp_large"); // End of computation region
+    // Step 1: Create displacements and send counts for Scatterv/Gatherv
+    int* send_counts = new int[size];
+    int* displacements = new int[size];
 
-    // Merging step using iterative merging (recursive doubling)
+    int base_size = N / size;
+    int remainder = N % size;
+
+    // Initialize send_counts and displacements
+    for (int i = 0; i < size; i++) {
+        send_counts[i] = base_size + (i < remainder ? 1 : 0); // Distribute remainder
+        displacements[i] = i == 0 ? 0 : displacements[i - 1] + send_counts[i - 1]; // Cumulative sum
+    }
+
+    // Step 2: Allocate space for the local array
+    std::vector<int> local_array(send_counts[rank]);
+    MPI_Scatterv(A, send_counts, displacements, MPI_INT, local_array.data(), send_counts[rank], MPI_INT, 0, MPI_COMM_WORLD);
+
+    // Step 4: Each process sorts its own sub-array
+    local_array = merge_sort(local_array);
+
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    // Step 5: Merging step using iterative merging (recursive doubling)
     int step = 1; // Start with a step size of 1 for merging
     while (step < size) {
+        
+    
         if (rank % (2 * step) == 0) { // Even-ranked process
             if (rank + step < size) {
-                int received_size = N / size; // Size of the received array
-                std::vector<int> received_array(received_size);
+                std::vector<int> received_array(local_array.size()); // Allocate buffer for incoming data
+                MPI_Recv(received_array.data(), received_array.size(), MPI_INT, rank + step, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-                // Use comm_large for larger communication
-                CALI_MARK_BEGIN("comm_large"); // Start of large communication region
-                MPI_Recv(received_array.data(), received_size, MPI_INT, rank + step, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                CALI_MARK_END("comm_large"); // End of large communication region
-                
-                // Merge the received array
-                CALI_MARK_BEGIN("comp"); // Start of merge computation
+                // Merge received array
                 local_array = merge(local_array, received_array);
-                CALI_MARK_END("comp"); // End of merge computation
             }
         } else {
-            // Use comm_large for larger communication
-            CALI_MARK_BEGIN("comm_large"); // Start of large communication region
-
-            MPI_Send(local_array.data(), N / size, MPI_INT, rank - step, 0, MPI_COMM_WORLD);
-            CALI_MARK_END("comm_large"); // End of large communication region
-            break; // Exit the loop after sending the data
+            // Send the local array to the previous rank
+            MPI_Send(local_array.data(), local_array.size(), MPI_INT, rank - step, 0, MPI_COMM_WORLD);
+            break;
         }
         step *= 2; // Double the step size for the next iteration
+        
     }
 
-    // After merging, the root process has the fully sorted array in `local_array`
+    // Step 6: Gather the sorted sub-arrays back to the root process
     if (rank == 0) {
-        // Copy the sorted array back to A if necessary (assuming we want it in A at root)
         std::copy(local_array.begin(), local_array.end(), A);
+    } else {
+        // Send the local sorted array back to root
+        MPI_Gatherv(local_array.data(), local_array.size(), MPI_INT, nullptr, nullptr, nullptr, MPI_INT, 0, MPI_COMM_WORLD);
     }
+    MPI_Barrier(MPI_COMM_WORLD);
+    // Cleanup
+    delete[] send_counts;
+    delete[] displacements;
 }
 
 int main(int argc, char** argv) {
-
-    
-    // Mark the function entry for Caliper
-    CALI_CXX_MARK_FUNCTION;
-
     const int MASTER = 0;
 
     int sizeOfArray, array_type;
@@ -176,19 +179,9 @@ int main(int argc, char** argv) {
     }
 
     int rank, size;
-    CALI_MARK_BEGIN("MPI_Init");
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    CALI_MARK_END("MPI_Init");
-
-
-    // Start Adiak and register metadata
-    adiak::init(nullptr);
-    adiak::launchdate();    // launch date of the job
-    adiak::libraries();     // Libraries used
-    adiak::cmdline();  // Command line used to launch the job
-    adiak::clustername();   // Name of the cluster
 
     // Validate input
     if (array_type < 1 || array_type > 4) {
@@ -196,89 +189,39 @@ int main(int argc, char** argv) {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-    // Algorithm-specific metadata
-    std::string algorithm = "merge";
-    std::string programming_model = "mpi";
-    std::string data_type = "int";
-    int size_of_data_type = sizeof(int);
-    std::string scalability = "strong";  
-    int group_number = 5;  
-    std::string implementation_source = "handwritten";  
-
-    adiak::value("algorithm", algorithm);
-    adiak::value("programming_model", programming_model);
-    adiak::value("data_type", data_type);
-    adiak::value("size_of_data_type", size_of_data_type);
-    adiak::value("input_size", sizeOfArray);
-
     // Initialize data
     int* A = nullptr;
     if (rank == 0) {
-        CALI_MARK_BEGIN("data_init_runtime"); // Start data initialization region
         A = new int[sizeOfArray];
         generate_array(A, sizeOfArray, array_type); // Generate the array based on user input
-        CALI_MARK_END("data_init_runtime"); // End data initialization region
+        
     }
-
-    adiak::value("num_procs", size);
-    adiak::value("scalability", scalability);
-    adiak::value("group_num", group_number);
-    adiak::value("implementation_source", implementation_source);
-
-    CALI_MARK_BEGIN("MPI_Comm_dup");  // Begin MPI_Comm_dup
-    MPI_Comm comm_dup;
-    MPI_Comm_dup(MPI_COMM_WORLD, &comm_dup);
-    CALI_MARK_END("MPI_Comm_dup");  // End MPI_Comm_dup
-
-    // Barrier to synchronize
-    CALI_MARK_BEGIN("comm");
-    MPI_Barrier(MPI_COMM_WORLD);
-    CALI_MARK_END("comm");
-
-
-    // Calculate sub-array size and allocate space for local sub-array
-    int sub_array_size = sizeOfArray / size;
-    int* local_array = new int[sub_array_size];
-
-    // Scatter the data across all processes
-    CALI_MARK_BEGIN("MPI_Scatter");
-    MPI_Scatter(A, sub_array_size, MPI_INT, local_array, sub_array_size, MPI_INT, MASTER, MPI_COMM_WORLD);
-    CALI_MARK_END("MPI_Scatter");
-
-    // Call the parallel merge sort function
-    parallel_merge_sort(local_array, sub_array_size, rank, size);
-
-    // Gather the sorted sub-arrays back to the root process
-    int* sorted_array = nullptr;
-    if (rank == 0) {
-        sorted_array = new int[sizeOfArray];
-    }
-
-    CALI_MARK_BEGIN("MPI_Gather");
-    MPI_Gather(local_array, sub_array_size, MPI_INT, sorted_array, sub_array_size, MPI_INT, MASTER, MPI_COMM_WORLD);
-    CALI_MARK_END("MPI_Gather");
     
-    // Communication - gather the sorted arrays (final merge)
+    //MPI_Barrier(MPI_COMM_WORLD);
+    // Call the parallel merge sort function
+    parallel_merge_sort(A, sizeOfArray, rank, size);
+
+    // Check correctness and print the sorted array if rank is 0
     if (rank == 0) {
-        // Check correctness
-        CALI_MARK_BEGIN("correctness_check"); // Start correctness check region
-        if (is_sorted(sorted_array, sizeOfArray)) {
+        if (is_sorted(A, sizeOfArray)) {
             std::cout << "Array is sorted." << std::endl;
+            std::cout << "Sorted Array: ";
+            for (int i = 0; i < sizeOfArray; i++) {
+                std::cout << A[i] << " ";
+            }
+            std::cout << std::endl;
         } else {
             std::cout << "Array is NOT sorted." << std::endl;
+            for (int i = 0; i < sizeOfArray; i++) {
+                std::cout << A[i] << " ";
+            }
+            std::cout << std::endl;
         }
-        CALI_MARK_END("correctness_check"); // End correctness check region
 
         // Cleanup
         delete[] A; // Free allocated memory
-        delete[] sorted_array;
     }
 
-    delete[] local_array; // Free local array memory
-
-    CALI_MARK_BEGIN("MPI_Finalize");
-    adiak::fini();
     MPI_Finalize(); // Finalize MPI
-    CALI_MARK_END("MPI_Finalize");
     return 0;
 }
