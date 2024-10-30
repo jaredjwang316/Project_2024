@@ -271,6 +271,10 @@ int main(int argc, char** argv) {
     adiak::value("group_num", group_number);
     adiak::value("implementation_source", implementation_source);
 
+    // Create caliper ConfigManager object
+    cali::ConfigManager mgr;
+    mgr.start();
+
     // Call the parallel merge sort function
     parallel_merge_sort(A, sizeOfArray, rank, size);
 
@@ -290,6 +294,9 @@ int main(int argc, char** argv) {
 
     // Finalize MPI and Adiak
     adiak::fini();
+    // Flush Caliper output before finalizing MPI
+    mgr.stop();
+    mgr.flush();
     CALI_MARK_BEGIN("MPI_Finalize");
         MPI_Finalize();
     CALI_MARK_END("MPI_Finalize");
