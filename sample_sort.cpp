@@ -3,48 +3,19 @@
 #include <caliper/cali-manager.h>
 #include <adiak.hpp>
 #include <vector>
+#include <algorithm>
 using namespace std;
 
-// Sorts a from index low to high (inclusive of both endpoints) recursively using quicksort
-void quick_sort(vector<int>& a, int low, int high){
-	// base case, array is already sorted
-	if (low == high || high < low){
-		return;
+bool check_whether_sorted(vector<int>& a){
+	if (a.size() <= 1){
+		return true;
 	}
-	else if (low == high - 1){
-		if (a[low] > a[high]){
-			int temp = a[low];
-			a[low] = a[high];
-			a[high] = temp;
-			return;
-		}
-		else{
-			return;
+	for (int i = 1; i < a.size(); i++){
+		if (a[i] < a[i-1]){
+			return false;
 		}
 	}
-	// Choose the middle element as the pivot to avoid extremely slow sorting times with sorted and 1% perturbed arrays
-	int pivot = a[(low+high)/2];
-	// elements in left will be less than the pivot, elements in right will be greater than the pivot
-	int lp = low;
-	int rp = high;
-	
-	// Since the pivot is the last elemenet, the loop only iterates until a.size() - 2 since the pivot element is in neither left nor right
-	for (int i = low; i <= high; i++){
-		if (a[i] < pivot){
-			a[lp] = a[i];
-			lp++;
-		}
-		else if (a[i] > pivot){
-			a[rp] = a[i];
-			rp--;
-		}
-	}
-	for (int i = lp; i <= rp; i++){
-		a[i] = pivot;
-	}
-	
-	quick_sort(a, low, lp - 1);
-	quick_sort(a, rp + 1, high);
+	return true;
 }
 
 int main(int argc, char *argv[]){
@@ -57,7 +28,7 @@ int main(int argc, char *argv[]){
 		input_type = argv[2]; 
 	}
 	else{
-		printf("Invalid input, please enter the array size");
+		printf("Invalid input");
 	}
 
 
@@ -80,12 +51,12 @@ int main(int argc, char *argv[]){
 	else if (input_type == "random"){
 		// Each process generates n/num_processes data points
 		for (int i = 0; i < n/num_processes; i++){
-			a[i] = rand() % 1000;
+			a[i] = rand() % 10000;
 		}
 	}
 	else if (input_type == "reverse"){
 		for (int i = 0; i < n/num_processes; i++){
-			a[i] = num_processes - rank * n/num_processes - 1; 
+			a[i] = ((n - 1) - i) - rank * n/num_processes; 
 		}
 	}
 	else if (input_type == "perturbed"){
@@ -94,20 +65,21 @@ int main(int argc, char *argv[]){
 			a[i] = i + rank * n/num_processes;
 		}
 		for (int i = 0; i < num_perturbed; i++){
-			int index1 = rand() % 1000;
-			int index2 = rand() % 1000;
+			int index1 = rand() % (n/num_processes);
+			int index2 = rand() % (n/num_processes);
 			int temp = a[index1];
 			a[index1] = a[index2];
 			a[index2] = temp; 
 		}
 	}
-	if (rank == 0){
-		printf("Sorting %s input of size %d with %d processors. \n", input_type.c_str(), n, num_processes); 
-	}
 	double data_init_end = MPI_Wtime();
 	double data_init_time = data_init_end - data_init_begin;
 	CALI_MARK_END("data_init_runtime");
 	
+	if (rank == 0){
+		printf("Sorting %s input of size %d with %d processors. \n", input_type.c_str(), n, num_processes); 
+	}
+
 	double min_data_init_time, max_data_init_time;
 	MPI_Reduce(&data_init_time, &min_data_init_time, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
 	MPI_Reduce(&data_init_time, &max_data_init_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
@@ -122,8 +94,7 @@ int main(int argc, char *argv[]){
 	adiak::libraries();     // Libraries used
 	adiak::cmdline();       // Command line used to launch the job
 	adiak::clustername();   // Name of the cluster
-
-	adiak::value("algorithm", "merge"); // The name of the algorithm you are using (e.g., "merge", "bitonic")
+	adiak::value("algorithm", "sample"); // The name of the algorithm you are using (e.g., "merge", "bitonic")
 	adiak::value("programming_model", "mpi"); // e.g. "mpi"
 	adiak::value("data_type", "int"); // The datatype of input elements (e.g., double, int, float)
 	adiak::value("size_of_data_type", sizeof(int)); // sizeof(datatype) of input elements in bytes (e.g., 1, 2, 4)
@@ -153,14 +124,14 @@ int main(int argc, char *argv[]){
 	
 	CALI_MARK_BEGIN("comp");
 	CALI_MARK_BEGIN("comp_large");
-	quick_sort(a, 0, a.size() - 1);
+	sort(a.begin(), a.end());
 	CALI_MARK_END("comp_large");	
 	CALI_MARK_END("comp");
 
 			
 	CALI_MARK_BEGIN("comp");
 	CALI_MARK_BEGIN("comp_large");
-	//8 seems like a decent sample size and is also a power of 2 which is convenient.
+	//16 seems like a decent sample size and is also a power of 2 which is convenient.
 	s = 16;
 	// s samples will be drawn from the local portion of the array for each process, these local samples will eventually be combined and put into global_samples
 	vector<int> local_samples;
@@ -194,16 +165,10 @@ int main(int argc, char *argv[]){
 	if (rank == 0){
 		CALI_MARK_BEGIN("comp");
 		CALI_MARK_BEGIN("comp_small");
-		quick_sort(global_samples, 0,  global_samples.size() - 1);
+		sort(global_samples.begin(), global_samples.end());
 		int gap = (global_samples.size() - (num_processes - 1))/num_processes;
 		// Want to select every gap + 1 th elemen
 		
-		//for (int i = 0; i < global_samples.size(); i++){
-		//	if ( i% gap == 0){
-		//		temp.push_back(global_samples[i]);
-		//	}
-		//}
-
 		// example: 32 processors
 		// 32*8 gloabl samples
 		// Want the splitters to have a roughly equal amount of elements in between them
@@ -219,22 +184,19 @@ int main(int argc, char *argv[]){
 				k++;
 			}
 		}
-		// remove first element from splitters array and we have num_processes - 1 elements
-		//temp.erase(temp.begin());
-		
-		//for (int i = 0; i < num_processes - 1; i++){
-		//	splitters[i] = temp[i+1];
-		//}
 		
 		CALI_MARK_END("comp_small");
 		CALI_MARK_END("comp");
 		
-		CALI_MARK_BEGIN("comm");
-		CALI_MARK_END("comm");
 	}
+
+	CALI_MARK_BEGIN("comm");
+	CALI_MARK_BEGIN("comm_small");
 	MPI_Bcast(splitters.data(), num_processes - 1, MPI_INT, 0, MPI_COMM_WORLD);
 	MPI_Barrier(MPI_COMM_WORLD);
-	
+	CALI_MARK_END("comm_small");
+	CALI_MARK_END("comm");	
+
 	CALI_MARK_BEGIN("comp");
 	CALI_MARK_BEGIN("comp_large");
 	
@@ -290,7 +252,7 @@ int main(int argc, char *argv[]){
 	for (int i = 0; i < num_processes; i++){	
 		MPI_Reduce(&local_bucket_sizes[i], &current_bucket_size, 1, MPI_INT, MPI_SUM, i, MPI_COMM_WORLD);
 	}
-	printf("rank %d bucket size: %d \n", rank, current_bucket_size);
+	//printf("rank %d bucket size: %d \n", rank, current_bucket_size);
 	CALI_MARK_END("comp_small");
 	CALI_MARK_END("comp");
 	
@@ -322,7 +284,7 @@ int main(int argc, char *argv[]){
 	CALI_MARK_BEGIN("comp_small");
 	
 	int* displacements = new int[num_processes];
-	displacements[0] = 0;;
+	displacements[0] = 0;
 	for (int i = 1; i < num_processes; i++){
 		displacements[i] = displacements[i-1] + local_sizes_for_current_bucket[i-1];
 	}
@@ -351,105 +313,84 @@ int main(int argc, char *argv[]){
 		CALI_MARK_END("comp");
 	}
 
-	printf("Rank %d bucket gathering time: %f \n", rank, gather_bucket_elements_time);
-	// Everything fine until here
+	//printf("Rank %d bucket gathering time: %f \n", rank, gather_bucket_elements_time);
 	
 	// For some reason, the following section causes huge increases in time for sorted and perturbed (almost sorted)
-	if (input_type == "random" || input_type == "reverse"){
-		CALI_MARK_BEGIN("comp");
-		CALI_MARK_BEGIN("comp_large");
-		double bucket_quicksort_begin = MPI_Wtime();
-		quick_sort(current_bucket, 0,  current_bucket.size() - 1);
-		double bucket_quicksort_end = MPI_Wtime();
-		double bucket_quicksort_time = bucket_quicksort_end - bucket_quicksort_begin;
-		CALI_MARK_END("comp_large");
-		CALI_MARK_END("comp");	
-	
-		MPI_Barrier(MPI_COMM_WORLD);
-		double bucket_quicksort_max, bucket_quicksort_min, bucket_quicksort_average;
-		MPI_Reduce(&bucket_quicksort_time, &bucket_quicksort_min, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
-		MPI_Reduce(&bucket_quicksort_time, &bucket_quicksort_max, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-		if (rank == 0){
-			printf("Min bucket quicksort time: %f \n", bucket_quicksort_min);
-			printf("Max bucket quicksort time: %f \n", bucket_quicksort_max);
-		}
-	}
-	
-	
-	// MPI_Barrier();
-	vector<int> global_array_sorted;
-	int* global_receive_counts = new int[num_processes];
-	int* global_displacements = new int[num_processes];
-	
-	vector<int> global_bucket_sizes;
-	global_bucket_sizes.resize(num_processes);
-
-	CALI_MARK_BEGIN("comm");
-	CALI_MARK_BEGIN("comm_small");
-	MPI_Gather(&current_bucket_size, 1, MPI_INT, global_bucket_sizes.data(), 1, MPI_INT, 0, MPI_COMM_WORLD);
-	CALI_MARK_END("comm_small");
-	CALI_MARK_END("comm");	
-
 	CALI_MARK_BEGIN("comp");
-	CALI_MARK_BEGIN("comp_small");
-	global_displacements[0] = 0;
-	for (int i = 0; i < num_processes; i++){
-		global_receive_counts[i] = global_bucket_sizes[i];
-	}
-	for (int i = 1; i < num_processes; i++){
-		global_displacements[i] = global_displacements[i-1] + global_bucket_sizes[i-1];
-	}
+	CALI_MARK_BEGIN("comp_large");
+	double bucket_quicksort_begin = MPI_Wtime();
+	sort(current_bucket.begin(), current_bucket.end());
+	double bucket_quicksort_end = MPI_Wtime();
+	double bucket_quicksort_time = bucket_quicksort_end - bucket_quicksort_begin;
+	// printf("Rank %d bucket sort time: %f \n", rank, bucket_quicksort_time);
+	CALI_MARK_END("comp_large");
+	CALI_MARK_END("comp");	
 	
+	MPI_Barrier(MPI_COMM_WORLD);
+	double bucket_quicksort_max, bucket_quicksort_min, bucket_quicksort_average;
+	MPI_Reduce(&bucket_quicksort_time, &bucket_quicksort_min, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
+	MPI_Reduce(&bucket_quicksort_time, &bucket_quicksort_max, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 	if (rank == 0){
-		global_array_sorted.resize(n);
-	}
-	CALI_MARK_END("comp_small");
-	CALI_MARK_END("comp");
-	
-	CALI_MARK_BEGIN("comm");
-	CALI_MARK_BEGIN("comm_large");
-	double master_receive_all_elements_begin = MPI_Wtime();
-	MPI_Gatherv(current_bucket.data(), current_bucket.size(), MPI_INT, global_array_sorted.data(), global_receive_counts, global_displacements, MPI_INT, 0, MPI_COMM_WORLD);
-	double master_receive_all_elements_end = MPI_Wtime();
-	double master_receive_elements_time = master_receive_all_elements_end - master_receive_all_elements_begin;
-	CALI_MARK_END("comm_large");
-	CALI_MARK_END("comm");
-	
-	double min_master_receive_time, max_master_receive_time;
-	MPI_Reduce(&master_receive_elements_time, &min_master_receive_time, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
-	MPI_Reduce(&master_receive_elements_time, &max_master_receive_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-	if (rank == 0){
-		printf("Min master receive time: %f \n", min_master_receive_time);
-		printf("Max master receive time: %f \n", max_master_receive_time);
+		printf("Min bucket quicksort time: %f \n", bucket_quicksort_min);
+		printf("Max bucket quicksort time: %f \n", bucket_quicksort_max);
 	}
 
+	MPI_Barrier(MPI_COMM_WORLD);
+	
+	CALI_MARK_BEGIN("correctness_check");
+	// Do correctness check locally
+	bool local_piece_is_sorted = check_whether_sorted(a);
+	bool all_pieces_are_sorted;
+	// Reduce using AND into global variable
+	MPI_Reduce(&local_piece_is_sorted, &all_pieces_are_sorted, 1, MPI_C_BOOL, MPI_LAND, 0, MPI_COMM_WORLD);
+	// Gather first and last element from each process into main
+	// Check whether those are sorted
+	// If yes, then everything is sorted
+	bool last_element_check = false;
+	
 	if (rank == 0){
-		// MPI_Barrier? wait till all local sorts done
-		CALI_MARK_BEGIN("correctness_check");
-		double correctness_check_begin = MPI_Wtime();
-		// Check correctness
-		bool sorted = true;
-		for (int i = 1; i < global_array_sorted.size(); i++){
-			if (global_array_sorted[i] < global_array_sorted[i-1]){
-				sorted = false;
+		last_element_check = true;
+	}
+	int most_recent_last = -1;
+	for (int i = 1; i < num_processes; i++){
+		if (rank == i - 1){
+			// Send the last element in the array sorted by process with rank i - 1 to all other processes
+			if (a.size() >= 1){
+				most_recent_last = a[a.size() - 1];
 			}
 		}
-		if (sorted){
-			printf("Sort successful \n");
+		MPI_Bcast(&most_recent_last, 1, MPI_INT, i-1, MPI_COMM_WORLD);
+		if (rank == i){
+			// All processes with lower rank had empty buckets
+			if (most_recent_last == -1){
+				last_element_check = true;
+			}
+			else{
+				if (a.size() >= 1){
+					last_element_check = most_recent_last < a[0];
+				}
+				else{
+					last_element_check = true;
+				}
+			}
+		}
+
+	}
+	bool global_last_element_check;
+
+	MPI_Reduce(&last_element_check, &global_last_element_check, 1, MPI_C_BOOL, MPI_LAND, 0, MPI_COMM_WORLD);
+	
+	if (rank == 0){
+		if (all_pieces_are_sorted && global_last_element_check){
+			printf("Sort successful");
 		}
 		else{
-			printf("Sort unsuccessful \n");
+			printf("Sort unsuccessful");
 		}
-		double correctness_check_end = MPI_Wtime();
-		double correctness_check_time =  correctness_check_end - correctness_check_begin;
-		CALI_MARK_END("correctness_check");	
-		printf("Correctness check time: %f", correctness_check_time);
 	}
-		
+	CALI_MARK_END("correctness_check");
 	
 	mgr.stop();
 	mgr.flush();	
 	MPI_Finalize();
-			
-
 }
