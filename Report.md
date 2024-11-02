@@ -762,6 +762,27 @@ Plots for the presentation should be as follows:
 
 Analyze these plots and choose a subset to present and explain in your presentation.
 
+- Strong Scaling Speedup Plot Analysis:
+    - General Trends: According to Amdahl's law, as the problem size increases, the portion of the algorithm that can be parallelized becomes more significant relative to the non-parallelizable part. Therefore, with larger datasets, the benefits of parallel execution become more pronounced, leading to better speedup ratios.  This explain why the speedup improves with respect to input sizes.  However, as the number of processors increases beyond a certain point, diminishing returns in speedup gains can occur. This is primarily due to the increasing communication overhead that becomes more dominant relative to the workload that can be effectively parallelized. While this trend applies to most algorithms, Bitonic Sort may not experience the same level of diminishing returns due to its fixed communication patterns, which do not scale efficiently with the addition of processors.
+    - Merge Sort:
+
+       ![Strong Scaling Speedup for Merge Sort - comp_large](scaling_graphs/Strong_scaling_speedup/Merge_sort_strong_scaling_comp_large_speedup.png)<br>
+          comp_large: Shows the best speedup, as its divide-and-conquer strategy efficiently distributes workload across processors. This leads to nearly ideal scaling for large problem sizes.
+    - Sample Sort:
+
+       ![Strong Scaling Speedup for Sample Sort - comp_large](scaling_graphs/Strong_scaling_speedup/Sample_sort_strong_scaling_comp_large_speedup.png)<br>
+          comp_large: Also achieves good speedup, especially for randomized array inputs, as it adjusts how it divides the data dynamically (adaptive partitioning). This ensures that each processor gets an equal share of the workload, avoiding situations where some processors finish early and others take longer (load imbalance). By balancing the work more evenly, Sample Sort performs strongly in parallel computing, particularly when dealing with large datasets, as it reduces idle time and maximizes the efficiency of all processors involved.  
+    - Bitonic Sort:
+
+       ![Strong Scaling Speedup for Bitonic Sort - comp_large](scaling_graphs/Strong_scaling_speedup/Bitonic_sort_strong_scaling_comp_large_speedup.png)<br>
+          comp_large: Shows slow speedup due to its fixed communication patterns.  The relationship between speedup and the number of processors is linear.  As the number of processors increases, Bitonic sort doesn’t scale as efficiently, particularly for random inputs.  This is because Bitonic sort follows a rigid comparison-and-swapping routine, regardless of the data structure. For random inputs, this leads to excessive and unnecessary comparison checks, meaning it does not utilize parallelism the best.
+    - Radix Sort:
+
+       ![Strong Scaling Speedup for Radix Sort - comp_large](scaling_graphs/Strong_scaling_speedup/Radix_sort_strong_scaling_comp_large_speedup.png)<br>
+          comp_large: Shows the weakest speedup.  Since Radix sort is a non-comparative sorting algorithm, it lacks the flexibility of divide-and-conquer approach. The same number of passes is required, limiting its ability to benefit from added processors.  On top of that, Radix sort requires inter-processor communication to coordinate and distribute data for every pass. As input size increases, this overhead becomes more dominating, which further reduces speedup gains.
+      
+- Weak Scaling Plot Analysis:
+
 ## 6. Final Report
 Submit a zip named `TeamX.zip` where `X` is your team number. The zip should contain the following files:
 - Algorithms: Directory of source code of your algorithms.
