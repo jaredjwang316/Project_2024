@@ -752,6 +752,7 @@ As the number of processes increases, the computational time decreases exponenti
 
 The algorithm still times out and takes much longer than expected for large numbers of processes and/or sorted or perturbed input values. This along with some network issues and other possibly related errors caused a lot of jobs to not run and the data to look unexpected. On the other hand, some plots look sort of reasonable such as the plot for 2^16 for perturbed and sorted. These feature an exponentially decreasing function which seems reasonable. These unexpected trends will hopefully be fixed with a new revision of the sample sort implementation.
 
+
 ## 5. Presentation
 Plots for the presentation should be as follows:
 - For each implementation:
@@ -801,3 +802,13 @@ Submit a zip named `TeamX.zip` where `X` is your team number. The zip should con
 - Data: All `.cali` files used to generate the plots seperated by algorithm/implementation.
 - Jupyter notebook: The Jupyter notebook(s) used to generate the plots for the report.
 - Report.md
+
+#### Revised Sample Sort Plots
+![sample Sort: Number of Processors vs. Time / Rank (Input Size=65536)](plots/sample/new_plots/sample_performance_rank_a65536.png)
+![sample Sort: Number of Processors vs. Time / Rank (Input Size=262144)](plots/sample/new_plots/sample_performance_rank_a262144.png)
+![sample Sort: Number of Processors vs. Time / Rank (Input Size=1048576)](plots/sample/new_plots/sample_performance_rank_a1048576.png)
+![sample Sort: Number of Processors vs. Time / Rank (Input Size=4194304)](plots/sample/new_plots/sample_performance_rank_a4194304.png)
+![sample Sort: Number of Processors vs. Time / Rank (Input Size=16777216)](plots/sample/new_plots/sample_performance_rank_a16777216.png)
+![sample Sort: Number of Processors vs. Time / Rank (Input Size=67108864)](plots/sample/new_plots/sample_performance_rank_a67108864.png)
+![sample Sort: Number of Processors vs. Time / Rank (Input Size=268435456)](plots/sample/new_plots/sample_performance_rank_a268435456.png)
+
