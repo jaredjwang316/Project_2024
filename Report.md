@@ -763,49 +763,78 @@ Plots for the presentation should be as follows:
 
 Analyze these plots and choose a subset to present and explain in your presentation.
 
-- Strong Scaling Speedup Plot Analysis:
-    - General Trends: According to Amdahl's law, as the problem size increases, the portion of the algorithm that can be parallelized becomes more significant relative to the non-parallelizable part. Therefore, with larger array sizes, the benefits of parallel sorting become more pronounced, leading to better speedup ratios. This explains why the speedup improves with respect to input sizes. However, as the number of processors increases beyond a certain point, diminishing returns in speedup gains can occur. This is primarily due to the increasing communication overhead that becomes more dominant relative to the workload that can be effectively parallelized. While this trend applies to most algorithms, Bitonic Sort may not experience the same level of diminishing returns due to its fixed communication patterns, which do not scale efficiently with the addition of processors.
-    - Merge Sort:
-        - Random:
-           ![Strong Scaling Speedup for Merge Sort - comp_large](plots/merge/merge_strongscaling_speedup_random_comp_large.png)
-           ![Strong Scaling Speedup for Merge Sort - comm](plots/merge/merge_strongscaling_speedup_random_comm.png) <br> 
-              comp_large: As seen on the plot, this implementation of merge sort has some unexpected trends. Unlike the other algorithms, the smallest input size has the highest slope in the speedup plot. The expected trend is the reverse as the larger input sizes have better distributions of random data and the algorithm should be able to divide more efficiently and take better advantage of parallelism. The plot also indicates a much higher speedup for the smallest input size when compared to the other input sizes (about 4 times for the largest number of processers). These factors are likely due to the implementation of merge sort as the speedups for higher inputs seem to be consistently lower than the speedup for the lowest input size.<br> <br>
-              comm: Shows exponential decay in speedup as the number of processors increases.  Merge Sort’s structured merging phase involves data exchange between processors. As the problem size is split across more processors, the merging step requires more frequent communication.  Initially, more processors reduce overall computation time, but the communication overhead during merging grows. This causes a decline in speedup because processors spend more time synchronizing.  The sharp speedup decay occurs when the communication cost outweighs the gains from parallelizing the computation.
-    - Sample Sort:
-        - Random:
-           ![Strong Scaling Speedup for Sample Sort - comp_large](plots/sample/sample_strongscaling_speedup_random_comp_large.png)
-           ![Strong Scaling Speedup for Sample Sort - comm](plots/sample/sample_strongscaling_speedup_random_comm.png) <br> 
-               comp_large: Overall, the speedup plot seems very reasonable. The line with the highest slope is for the highest input size which makes sense since this is when the benefits of parallelism are seen the most. This is largely as the communication time is more reasonable when considering the reduction of computation time for the larger inputs. The peak(mentioned in the revised section at the end of the report) around 512 processors is also seen here. The same issue causing the peak in those plots also seems to be affecting speedup here. Otherwise, the speedup is close to linear as expected. The speedup seems to be not as great as bitonic sort, but better than radix and merge sort.<br> <br>
-              comm: The comm seems typical as well. As expected, there is an exponential decrease in speedup for the comm. This is because the communication doubles each time the processor count doubles resulting in the speedup dividing in half. This trend is consistent with merge and radix sort, which also display plots with exponentially decreasing speedup for comm. The outlier here is bitonic which displays a more unexpected trend. One thing to notice though is that the speedup decrease seems quite large. As opposed to 8x, 4x, 2x speedup etc., the scale goes up to 60. This could be due to the fact that sample sort has a lot more communication when sending the items to the right process based on the buckets. Otherwise, the exponentially decreasing trend for comm seems pretty consistent.  
-    - Bitonic Sort:
-        - Random:
-           ![Strong Scaling Speedup for Bitonic Sort - comp_large](plots/bitonic/bitonic_strongscaling_speedup_random_comp_large.png)
-           ![Strong Scaling Speedup for Bitonic Sort - comm](plots/bitonic/bitonic_strongscaling_speedup_random_comm.png) <br> 
-          comp_large: For bitonic sort, we see much closer to an ideal strong scaling speedup graph, where our speedup scales close to linearly with the number of processes. We can also see that the higher the array size, the closer our speedup approaches ideal linear scaling, which is expected since we have more operations to divide across processors. Overall, these results indicate that the computational part of the bitonic sort implementation effectively utilizes additional processes without accruing extra overhead. This becomes more apparent when we consider that the bitonic sort implementation uses a recursive parallel merging approach which evenly distributes work across as many processes as possible at each recursive level, making it highly scalable. <br> <br>
-          comm: On the other hand, we see much more variability in the speedup curves for communication. We also see somewhat irregular patterns where the communication overhead grows and declines as we scale the number of processors. This indicates that as more processors are added, the communication overhead begins to dominate, especially for medium and smaller data sizes. Thus, there is definitely room for further optimization in communication to improve overall scaling.
-    - Radix Sort:
-        - Random:
-           ![Strong Scaling Speedup for Radix Sort - comp_large](plots/radix/radix_strongscaling_speedup_random_comp_large.png)
-           ![Strong Scaling Speedup for Radix Sort - comm](plots/radix/radix_strongscaling_speedup_random_comm.png) <br>
-              - comp_large: As seen on the plot, the maximum speedup for radix sort is a little higher than 5. This can be contrasted with the other sorts which have much higher speedups. In addition, as opposed to being linear or close to linear like the other sorts, radix displays an almost logarithmic speedup plot. Essentially, adding more processors after a certain point will not improve speedup by much. An unexpected trend is that the second highest input actually has the highest speedup as opposed to the largest input. <br> <br>
-              - comm: The comm plot looks a bit different from the other sorts. The comm speedup is actually closest to a constant function (except for the lowest input), minus some fluctuations. While sample and merge sort require heavy communication, it seems that according to the plot, radix does not require a huge increase in communication as processors are increased. The lowest input has the most variation which seems reasonable. As the input sizes get smaller, errors or other factors have a larger effect on algorithm performance as the time is small already. 
+### Strong Scaling Speedup
+- General Trends: According to Amdahl's law, as the problem size increases, the portion of the algorithm that can be parallelized becomes more significant relative to the non-parallelizable part. Therefore, with larger array sizes, the benefits of parallel sorting become more pronounced, leading to better speedup ratios. This explains why the speedup improves with respect to input sizes. However, as the number of processors increases beyond a certain point, diminishing returns in speedup gains can occur. This is primarily due to the increasing communication overhead that becomes more dominant relative to the workload that can be effectively parallelized. While this trend applies to most algorithms, Bitonic Sort may not experience the same level of diminishing returns due to its fixed communication patterns, which do not scale efficiently with the addition of processors.
+- Merge Sort:
+    - Random:
+        ![Strong Scaling Speedup for Merge Sort - comp_large](plots/merge/merge_strongscaling_speedup_random_comp_large.png)
+        ![Strong Scaling Speedup for Merge Sort - comm](plots/merge/merge_strongscaling_speedup_random_comm.png) <br> 
+            comp_large: As seen on the plot, this implementation of merge sort has some unexpected trends. Unlike the other algorithms, the smallest input size has the highest slope in the speedup plot. The expected trend is the reverse as the larger input sizes have better distributions of random data and the algorithm should be able to divide more efficiently and take better advantage of parallelism. The plot also indicates a much higher speedup for the smallest input size when compared to the other input sizes (about 4 times for the largest number of processers). These factors are likely due to the implementation of merge sort as the speedups for higher inputs seem to be consistently lower than the speedup for the lowest input size. <br> <br>
+            comm: Shows exponential decay in speedup as the number of processors increases.  Merge Sort’s structured merging phase involves data exchange between processors. As the problem size is split across more processors, the merging step requires more frequent communication.  Initially, more processors reduce overall computation time, but the communication overhead during merging grows. This causes a decline in speedup because processors spend more time synchronizing.  The sharp speedup decay occurs when the communication cost outweighs the gains from parallelizing the computation.
+- Sample Sort:
+    - Random:
+        ![Strong Scaling Speedup for Sample Sort - comp_large](plots/sample/sample_strongscaling_speedup_random_comp_large.png)
+        ![Strong Scaling Speedup for Sample Sort - comm](plots/sample/sample_strongscaling_speedup_random_comm.png) <br> 
+            comp_large: Overall, the speedup plot seems very reasonable. The line with the highest slope is for the highest input size which makes sense since this is when the benefits of parallelism are seen the most. This is largely as the communication time is more reasonable when considering the reduction of computation time for the larger inputs. The peak(mentioned in the revised section at the end of the report) around 512 processors is also seen here. The same issue causing the peak in those plots also seems to be affecting speedup here. Otherwise, the speedup is close to linear as expected. The speedup seems to be not as great as bitonic sort, but better than radix and merge sort.<br> <br>
+            comm: The comm seems typical as well. As expected, there is an exponential decrease in speedup for the comm. This is because the communication doubles each time the processor count doubles resulting in the speedup dividing in half. This trend is consistent with merge and radix sort, which also display plots with exponentially decreasing speedup for comm. The outlier here is bitonic which displays a more unexpected trend. One thing to notice though is that the speedup decrease seems quite large. As opposed to 8x, 4x, 2x speedup etc., the scale goes up to 60. This could be due to the fact that sample sort has a lot more communication when sending the items to the right process based on the buckets. Otherwise, the exponentially decreasing trend for comm seems pretty consistent.  
+- Bitonic Sort:
+    - Random:
+        ![Strong Scaling Speedup for Bitonic Sort - comp_large](plots/bitonic/bitonic_strongscaling_speedup_random_comp_large.png)
+        ![Strong Scaling Speedup for Bitonic Sort - comm](plots/bitonic/bitonic_strongscaling_speedup_random_comm.png) <br> 
+        comp_large: For bitonic sort, we see much closer to an ideal strong scaling speedup graph, where our speedup scales close to linearly with the number of processes. We can also see that the higher the array size, the closer our speedup approaches ideal linear scaling, which is expected since we have more operations to divide across processors. Overall, these results indicate that the computational part of the bitonic sort implementation effectively utilizes additional processes without accruing extra overhead. This becomes more apparent when we consider that the bitonic sort implementation uses a recursive parallel merging approach which evenly distributes work across as many processes as possible at each recursive level, making it highly scalable. <br> <br>
+        comm: On the other hand, we see much more variability in the speedup curves for communication. We also see somewhat irregular patterns where the communication overhead grows and declines as we scale the number of processors. This indicates that as more processors are added, the communication overhead begins to dominate, especially for medium and smaller data sizes. Thus, there is definitely room for further optimization in communication to improve overall scaling.
+- Radix Sort:
+    - Random:
+        ![Strong Scaling Speedup for Radix Sort - comp_large](plots/radix/radix_strongscaling_speedup_random_comp_large.png)
+        ![Strong Scaling Speedup for Radix Sort - comm](plots/radix/radix_strongscaling_speedup_random_comm.png) <br>
+            - comp_large: As seen on the plot, the maximum speedup for radix sort is a little higher than 5. This can be contrasted with the other sorts which have much higher speedups. In addition, as opposed to being linear or close to linear like the other sorts, radix displays an almost logarithmic speedup plot. Essentially, adding more processors after a certain point will not improve speedup by much. An unexpected trend is that the second highest input actually has the highest speedup as opposed to the largest input. <br> <br>
+            - comm: The comm plot looks a bit different from the other sorts. The comm speedup is actually closest to a constant function (except for the lowest input), minus some fluctuations. While sample and merge sort require heavy communication, it seems that according to the plot, radix does not require a huge increase in communication as processors are increased. The lowest input has the most variation which seems reasonable. As the input sizes get smaller, errors or other factors have a larger effect on algorithm performance as the time is small already. 
       
-- Weak Scaling Plot Analysis:
-    - comm:
-        ![Weak Scaling Speedup - comm](plots/combined/weakscaling_speedup_random_comm.png)
-        - Merge Sort: We can see that the communication times for merge sort increases exponentially as we scale up the number of processes. This indicates that merge sort is not effeciently scaling in terms of communication.
-        - Other Algorithms: On the other hand, bitonic, sample, and radix sort seem to show a much flatter trend of average communication time per process, suggesting that the communication overhead remains fairly low as we scale up the number of processes and problem size.  
-    - comp_large:
-        ![Weak Scaling Speedup - comp_large](plots/combined/weakscaling_speedup_random_comp_large.png)
-        - Here, we still see the same trend of the computation time growing exponentially as we scale processors and problem size with merge sort. This growth suggests poor scalability for the computation phase due to an inefficient division of work among processes. In the context of weak scaling, which is supposed to provide an understanding of whether or not we can add processors to effectively tackle larger problem sizes, we cannot expect this kind of scalability from merge sort. 
-        - While on this graph, it appears as though bitonic sort follows a similar scalability trend as radix and sample sort, differences become more apparent when we consider other input types. For example, in the case of perturbed and sorted inputs as shown below:
-        ![Weak Scaling Speedup - comp_large, sorted](plots/combined/weakscaling_speedup_sorted_comp_large.png)
-        - Here, we can see that while bitonic sort's computational costs still accrue at a much slower rate than merge sort, it's still less scalable in this context compared to radix and sample sort. This is due to the underlying algorithm behind bitonic sort, where the array is divided into bitonically alternating pairs of increasing and decreasing subarrays. In the context of a sorted or almost completely sorted array, this approach essentially guarantees that about half of the array needs to be reversed by the algorithm, accruing more recursive comparisons and operations.\
-        - In the case of radix and sample sort, we see relatively low and flat computation times per rank, indicating that they are efficiently distributing the computation load across processors. This means they handle larger input sizes without much additional computation burden per processor.
-          
-    - main:
-        ![Weak Scaling Speedup - main](plots/combined/weakscaling_speedup_random_main.png)
-        - The trends we see in the main execution reflect what we have already observed across computation and communication where radix sort and sample sort significantly outperform merge and bitonic sort in terms of weak scaling efficiency. We also see that merge sort is consistently the least efficient for weak scaling due to high computational loads per processor and communication overheads.
+### Weak Scaling
+- comm:
+    ![Weak Scaling Speedup - comm](plots/combined/weakscaling_speedup_random_comm.png)
+    - Merge Sort: We can see that the communication times for merge sort increases exponentially as we scale up the number of processes. This indicates that merge sort is not effeciently scaling in terms of communication.
+    - Other Algorithms: On the other hand, bitonic, sample, and radix sort seem to show a much flatter trend of average communication time per process, suggesting that the communication overhead remains fairly low as we scale up the number of processes and problem size.  
+- comp_large:
+    ![Weak Scaling Speedup - comp_large](plots/combined/weakscaling_speedup_random_comp_large.png)
+    - Here, we still see the same trend of the computation time growing exponentially as we scale processors and problem size with merge sort. This growth suggests poor scalability for the computation phase due to an inefficient division of work among processes. In the context of weak scaling, which is supposed to provide an understanding of whether or not we can add processors to effectively tackle larger problem sizes, we cannot expect this kind of scalability from merge sort. 
+    - While on this graph, it appears as though bitonic sort follows a similar scalability trend as radix and sample sort, differences become more apparent when we consider other input types. For example, in the case of perturbed and sorted inputs as shown below:
+    ![Weak Scaling Speedup - comp_large, sorted](plots/combined/weakscaling_speedup_sorted_comp_large.png)
+    - Here, we can see that while bitonic sort's computational costs still accrue at a much slower rate than merge sort, it's still less scalable in this context compared to radix and sample sort. This is due to the underlying algorithm behind bitonic sort, where the array is divided into bitonically alternating pairs of increasing and decreasing subarrays. In the context of a sorted or almost completely sorted array, this approach essentially guarantees that about half of the array needs to be reversed by the algorithm, accruing more recursive comparisons and operations.\
+    - In the case of radix and sample sort, we see relatively low and flat computation times per rank, indicating that they are efficiently distributing the computation load across processors. This means they handle larger input sizes without much additional computation burden per processor.
+        
+- main:
+    ![Weak Scaling Speedup - main](plots/combined/weakscaling_speedup_random_main.png)
+    - The trends we see in the main execution reflect what we have already observed across computation and communication where radix sort and sample sort significantly outperform merge and bitonic sort in terms of weak scaling efficiency. We also see that merge sort is consistently the least efficient for weak scaling due to high computational loads per processor and communication overheads.
+
+### Cache Misses
+- Bitonic Sort
+![Bitonic Sort Cache Misses L1 - Comm](plots/bitonic/bitonic_cache_misses_L1_random_comm.png)
+![Bitonic Sort Cache Misses L1 - Comp_large](plots/bitonic/bitonic_cache_misses_L1_random_comp_large.png)
+![Bitonic Sort Cache Misses L2 - Comm](plots/bitonic/bitonic_cache_misses_L2_random_comm.png)
+![Bitonic Sort Cache Misses L2 - Comp_large](plots/bitonic/bitonic_cache_misses_L2_random_comp_large.png)
+
+- Merge Sort
+![Merge Sort Cache Misses L1 - Comm](plots/merge/merge_cache_misses_L1_random_comm.png)
+![Merge Sort Cache Misses L1 - Comp_large](plots/merge/merge_cache_misses_L1_random_comp_large.png)
+![Merge Sort Cache Misses L2 - Comm](plots/merge/merge_cache_misses_L2_random_comm.png)
+![Merge Sort Cache Misses L2 - Comp_large](plots/merge/merge_cache_misses_L2_random_comp_large.png)
+
+- Sample Sort
+![Sample Sort Cache Misses L1 - Comm](plots/sample/sample_cache_misses_L1_random_comm.png)
+![Sample Sort Cache Misses L1 - Comp_large](plots/sample/sample_cache_misses_L1_random_comp_large.png)
+![Sample Sort Cache Misses L2 - Comm](plots/sample/sample_cache_misses_L2_random_comm.png)
+![Sample Sort Cache Misses L2 - Comp_large](plots/sample/sample_cache_misses_L2_random_comp_large.png)
+
+- Radix Sort
+![Radix Sort Cache Misses L1 - Comm](plots/radix/radix_cache_misses_L1_random_comm.png)
+![Radix Sort Cache Misses L1 - Comp_large](plots/radix/radix_cache_misses_L1_random_comp_large.png)
+![Radix Sort Cache Misses L2 - Comm](plots/radix/radix_cache_misses_L2_random_comm.png)
+![Radix Sort Cache Misses L2 - Comp_large](plots/radix/radix_cache_misses_L2_random_comp_large.png)
+
+- Analysis
+    - Sample, merge, radix: Across the sample, merge, and radix sort implementations, we observe an upward trend in L1 and L2 cache misses as we scale up the number of processors. This indicates that these algorithms are less cache-efficient when heavily parallelized. We also see that as we increase the problem size, we see less L1 and L2 cache misses.
+    - On the other hand, with sample sort, there's a bit more variability in these trends, where we actually see a reduction in cache misses in certain cases (2^26 array size in L2, 2^28 in L1) as well as a much flatter trend in general. This indicates that the sample sort algorithm is the most cache-efficient when parallelized. 
           
 ## 6. Final Report
 Submit a zip named `TeamX.zip` where `X` is your team number. The zip should contain the following files:
